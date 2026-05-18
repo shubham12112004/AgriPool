@@ -3,17 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\SpaTokenService;
+use App\Services\TurnstileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly TurnstileService $turnstile,
+        private readonly SpaTokenService $spaTokens,
+    ) {}
+
     public function showLogin()
     {
         return view('auth.login');
@@ -34,7 +40,7 @@ class AuthController extends Controller
             'cf-turnstile-response' => ['nullable', 'string'],
         ]);
 
-        if (! $this->verifyTurnstile($request)) {
+        if (! $this->turnstile->verifyRequest($request)) {
             return back()->withInput()->withErrors([
                 'captcha' => 'Cloudflare verification failed. Please try again.',
             ]);
@@ -50,7 +56,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard.index');
+        return redirect('/dashboard/farmer');
     }
 
     public function login(Request $request): RedirectResponse
@@ -61,7 +67,7 @@ class AuthController extends Controller
             'cf-turnstile-response' => ['nullable', 'string'],
         ]);
 
-        if (! $this->verifyTurnstile($request)) {
+        if (! $this->turnstile->verifyRequest($request)) {
             return back()->withInput()->withErrors([
                 'captcha' => 'Cloudflare verification failed. Please try again.',
             ]);
@@ -75,7 +81,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard.index');
+        return redirect('/dashboard/farmer');
     }
 
     public function logout(Request $request): RedirectResponse
@@ -90,6 +96,20 @@ class AuthController extends Controller
 
     public function redirectToGoogle(): RedirectResponse
     {
+        $returnTo = request()->query('return_to', config('app.frontend_url').'/auth/oauth/callback');
+        if (is_string($returnTo) && filter_var($returnTo, FILTER_VALIDATE_URL)) {
+            request()->session()->put('oauth_return_to', $returnTo);
+        }
+
+        $role = request()->query('role');
+        if (in_array($role, ['farmer', 'driver', 'buyer', 'equipment_owner'], true)) {
+            request()->session()->put('oauth_role', $role);
+        }
+
+        if (! config('services.google.client_id')) {
+            return redirect($returnTo.'?error='.urlencode('Google OAuth is not configured. Add GOOGLE_CLIENT_ID to .env'));
+        }
+
         return Socialite::driver('google')->redirect();
     }
 
@@ -98,14 +118,13 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (Throwable) {
-            return redirect()->route('login')->withErrors([
-                'oauth' => 'Google login failed. Please try again.',
-            ]);
+            $returnTo = $request->session()->pull('oauth_return_to', config('app.frontend_url').'/auth/oauth/callback');
+
+            return redirect($returnTo.'?error='.urlencode('Google login failed. Please try again.'));
         }
 
-        $user = User::where('google_id', $googleUser->id)
-            ->orWhere('email', $googleUser->email)
-            ->first();
+        $user = User::where('google_id', $googleUser->id)->first()
+            ?? User::where('email', $googleUser->email)->first();
 
         if (! $user) {
             $role = $request->session()->get('oauth_role', 'farmer');
@@ -122,36 +141,9 @@ class AuthController extends Controller
             $user->save();
         }
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        $returnTo = $request->session()->pull('oauth_return_to', config('app.frontend_url').'/auth/oauth/callback');
+        $code = $this->spaTokens->issueOAuthCode($user);
 
-        return redirect()->route('dashboard.index');
-    }
-
-    private function verifyTurnstile(Request $request): bool
-    {
-        $secret = config('services.turnstile.secret');
-        $token = $request->input('cf-turnstile-response');
-
-        // Allow local development to proceed when Turnstile keys are not configured.
-        if (! $secret) {
-            return app()->environment('local', 'testing');
-        }
-
-        if (! is_string($token) || trim($token) === '') {
-            return false;
-        }
-
-        try {
-            $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                'secret' => $secret,
-                'response' => $token,
-                'remoteip' => $request->ip(),
-            ]);
-
-            return (bool) data_get($response->json(), 'success', false);
-        } catch (Throwable) {
-            return false;
-        }
+        return redirect($returnTo.(str_contains($returnTo, '?') ? '&' : '?').'code='.urlencode($code));
     }
 }
