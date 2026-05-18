@@ -1,0 +1,63 @@
+{
+  "app": {
+    "name": "AgriPool",
+    "tagline": "Share resources, grow together"
+  },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "howItWorks": "How it works",
+    "faq": "FAQ",
+    "login": "Sign In",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "overview": "Overview",
+    "bookings": "Bookings",
+    "map": "Map",
+    "equipment": "Equipment",
+    "payments": "Payments",
+    "saved": "Saved",
+    "settings": "Settings",
+    "requests": "Requests",
+    "vehicle": "Vehicle",
+    "earnings": "Earnings",
+    "myEquipment": "My Equipment",
+    "rentals": "Rentals",
+    "marketplace": "Marketplace",
+    "orders": "Orders",
+    "users": "Users",
+    "verification": "Verification",
+    "moderation": "Moderation",
+    "analytics": "Analytics",
+    "notifications": "Notifications"
+  },
+  "home": {
+    "hero": {
+      "title": "AgriPool — Share resources, grow together",
+      "subtitle": "Connect farmers, drivers, equipment owners and buyers on one platform.",
+      "cta": "Get Started",
+      "learnMore": "Learn more"
+    },
+    "features": {
+      "title": "Features",
+      "feature1": "Equipment Rental",
+      "feature2": "Transport Services",
+      "feature3": "Crop Marketplace"
+    }
+  },
+  "auth": {
+    "signin": "Sign in",
+    "signup": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "continueWithGoogle": "Continue with Google",
+    "forgotPassword": "Forgot password?"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to AgriPool"
+  },
+  "footer": {
+    "copyright": "Copyright © 2026 AgriPool — Built for startups"
+  }
+}

@@ -25,6 +25,8 @@ class User extends Authenticatable
         'password',
         'role',
         'google_id',
+        'last_seen_at',
+        'is_online',
     ];
 
     /**
@@ -58,5 +60,15 @@ class User extends Authenticatable
     public function driverDeliveries(): HasMany
     {
         return $this->hasMany(Delivery::class, 'driver_id');
+    }
+
+    public function vehicle(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Vehicle::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 }

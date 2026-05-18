@@ -57,3 +57,32 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## AgriPool — Frontend (React) and Backend (Laravel API)
+
+This repository now includes a React + Vite frontend scaffold under the `frontend/` directory and an API-first Laravel backend.
+
+Quick start (backend):
+
+```
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan serve
+```
+
+Quick start (frontend):
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+Notes:
+- API uses Sanctum (recommended) for SPA authentication — install and configure `laravel/sanctum` and `laravel/socialite` for Google OAuth.
+- Cloudflare Turnstile verification endpoints are scaffolded as placeholders in `routes/api.php` and `App\Http\Controllers\Api\AuthController.php`.
+- Run `php artisan migrate` to create the `roles` table added by the scaffold.
+

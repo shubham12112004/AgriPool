@@ -1,0 +1,57 @@
+{
+  "app": {
+    "name": "AgriPool",
+    "tagline": "ਸਾਂਝਾ ਕਰੋ ਸਾਧਨ, ਇਕੱਠੇ ਵਧੋ"
+  },
+  "nav": {
+    "home": "ਘਰ",
+    "features": "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+    "howItWorks": "ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
+    "faq": "ਸਵਾਲ",
+    "login": "ਸਾਈਨ ਇਨ",
+    "dashboard": "ਡੈਸ਼ਬੋਰਡ",
+    "logout": "ਲੌਗ ਆਉਟ",
+    "overview": "ਝਲਕ",
+    "bookings": "ਬੁਕਿੰਗ",
+    "map": "ਨਕਸ਼ਾ",
+    "equipment": "ਉਪਕਰਣ",
+    "payments": "ਭੁਗਤਾਨ",
+    "saved": "ਸੰਭਾਲੇ",
+    "settings": "ਸੈਟਿੰਗਾਂ",
+    "requests": "ਬੇਨਤੀਆਂ",
+    "vehicle": "ਵਾਹਨ",
+    "earnings": "ਕਮਾਈ",
+    "myEquipment": "ਮੇਰੇ ਉਪਕਰਣ",
+    "rentals": "ਕਿਰਾਏ",
+    "marketplace": "ਬਾਜ਼ਾਰ",
+    "orders": "ਆਰਡਰ",
+    "users": "ਯੂਜ਼ਰ",
+    "verification": "ਪ੍ਰਮਾਣਿਕਰਣ",
+    "moderation": "ਮਾਡਰੇਸ਼ਨ",
+    "analytics": "ਵਿਸ਼ਲੇਸ਼ਣ",
+    "notifications": "ਸੂਚਨਾਵਾਂ"
+  },
+  "home": {
+    "hero": {
+      "title": "AgriPool — ਸਾਂਝਾ ਕਰੋ ਸਾਧਨ, ਇਕੱਠੇ ਵਧੋ",
+      "subtitle": "ਕਿਸਾਨਾਂ, ਡਰਾਈਵਰਾਂ, ਉਪਕਰਣ ਮਾਲਕਾਂ ਅਤੇ ਖਰੀਦਦਾਰਾਂ ਨੂੰ ਇੱਕ ਪਲੇਟਫਾਰਮ 'ਤੇ ਜੋੜੋ।",
+      "cta": "ਸ਼ੁਰੂ ਕਰੋ",
+      "learnMore": "ਹੋਰ ਜਾਣੋ"
+    }
+  },
+  "auth": {
+    "signin": "ਸਾਈਨ ਇਨ",
+    "signup": "ਸਾਈਨ ਅੱਪ",
+    "email": "ਈਮੇਲ",
+    "password": "ਪਾਸਵਰਡ",
+    "continueWithGoogle": "Google ਨਾਲ ਜਾਰੀ ਰੱਖੋ",
+    "forgotPassword": "ਪਾਸਵਰਡ ਭੁੱਲ ਗਏ?"
+  },
+  "dashboard": {
+    "title": "ਡੈਸ਼ਬੋਰਡ",
+    "welcome": "AgriPool ਵਿੱਚ ਤੁਹਾਡਾ ਸਵਾਗਤ ਹੈ"
+  },
+  "footer": {
+    "copyright": "ਕਾਪੀਰਾਈਟ © 2026 AgriPool"
+  }
+}

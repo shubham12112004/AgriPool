@@ -1,0 +1,6 @@
+import{m as t,q as a,r as i,U as s,b as r}from"./index-BOHv6BD6.js";import{P as l}from"./PageHeader-XzLR9XFB.js";import{S as e}from"./StatCard-d6Bvr1oE.js";import{D as n}from"./dollar-sign-4PwcC-kY.js";import{T as o}from"./trending-up-CkITLWBw.js";/**
+ * @license lucide-react v1.16.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const c=[["path",{d:"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2",key:"169zse"}]],d=t("activity",c);function y(){return a.jsxs(i.div,{initial:{opacity:0},animate:{opacity:1},className:"space-y-6",children:[a.jsx(l,{title:"Platform analytics",subtitle:"Revenue, growth, and activity"}),a.jsxs("div",{className:"grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4",children:[a.jsx(e,{label:"MAU",value:"12.4K",icon:s,trend:"+8%"}),a.jsx(e,{label:"GMV",value:"₹2.4M",icon:n,trend:"+22%"}),a.jsx(e,{label:"Bookings",value:"8,420",icon:d,trend:"+15%"}),a.jsx(e,{label:"Retention",value:"68%",icon:o})]}),a.jsx(r,{className:"p-6 h-64 flex items-center justify-center text-neutral-400",children:"Chart placeholder — connect Laravel analytics API"})]})}export{y as default};

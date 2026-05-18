@@ -7,79 +7,90 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
         <style>
-            :root {
-                --border: rgba(15, 23, 42, 0.08);
-                --text: #153026;
-                --muted: #547064;
-                --primary: #1f8f5f;
-                --primary-dark: #156343;
-                --shadow: 0 24px 60px rgba(9, 34, 24, 0.12);
-            }
+            :root { --text:#eef6ff; --muted:#95a6d8; --primary:#2b5fbf; --accent:#18c2ff; --border:rgba(60,110,200,0.12); }
             * { box-sizing: border-box; }
-            body {
-                margin: 0;
-                font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-                color: var(--text);
-                background:
-                    radial-gradient(circle at top left, rgba(31, 143, 95, 0.14), transparent 32%),
-                    radial-gradient(circle at top right, rgba(240, 180, 41, 0.10), transparent 28%),
-                    linear-gradient(180deg, #fbfdfb 0%, #f3f8f4 100%);
-            }
-            .container { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; }
-            .nav { position: sticky; top: 0; background: rgba(247, 250, 247, 0.86); border-bottom: 1px solid rgba(15, 23, 42, 0.06); backdrop-filter: blur(16px); }
-            .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; gap: 1rem; }
-            .brand { display: flex; gap: .75rem; align-items: center; font-weight: 800; text-decoration: none; color: inherit; }
-            .brand-mark { width: 2.5rem; height: 2.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--primary), #48b27e); box-shadow: 0 12px 30px rgba(31, 143, 95, 0.24); }
-            .btn { padding: .75rem 1.05rem; border-radius: 999px; border: 1px solid transparent; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
-            .btn-primary { background: linear-gradient(135deg, var(--primary), #2d9d6d); color: #fff; box-shadow: 0 14px 28px rgba(31, 143, 95, 0.18); }
-            .btn-secondary { background: #fff; border-color: rgba(31, 143, 95, 0.12); color: var(--primary-dark); }
-            .hero { padding: 2rem 0 1rem; }
-            h1 { margin: .5rem 0; font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: .96; letter-spacing: -.04em; }
-            .lead { color: var(--muted); line-height: 1.7; }
-            .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1rem; padding-bottom: 3rem; }
-            .card { background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 1.4rem; box-shadow: var(--shadow); padding: 1.1rem; }
-            .card h2 { margin: 0 0 .7rem; font-size: 1.15rem; }
-            .list { display: grid; gap: .6rem; }
-            .row { border: 1px solid rgba(15,23,42,.08); border-radius: .9rem; padding: .75rem .85rem; display: flex; justify-content: space-between; gap: .7rem; }
-            .row small { color: var(--muted); }
-            @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
-            @media (max-width: 640px) { .container { width: min(100% - 1.1rem, 1180px); } .btn { width: 100%; } }
+            body { margin:0; color:var(--text); font-family:'Instrument Sans',ui-sans-serif,system-ui,sans-serif; min-height:100vh; background: radial-gradient(circle at 10% -10%, rgba(43,95,191,0.12), transparent 32%), radial-gradient(circle at 90% -15%, rgba(24,194,255,0.06), transparent 30%), linear-gradient(160deg, #000000 0%, #07080c 45%, #000000 100%); }
+            .container { width:min(1160px, calc(100% - 2rem)); margin:0 auto; }
+            .top { display:flex; justify-content:space-between; gap:1rem; padding:1rem 0; align-items:center; }
+            .brand { display:inline-flex; align-items:center; gap:.7rem; font-weight:800; }
+            .mark { width:2.3rem; height:2.3rem; border-radius:.9rem; background:linear-gradient(140deg,var(--primary),var(--accent)); }
+            .btn { border:1px solid rgba(60,110,200,.14); border-radius:.8rem; padding:.68rem .95rem; color:#dce7ff; background:rgba(4,10,24,.8); text-decoration:none; font-weight:700; transition:all .2s ease; cursor:pointer; }
+            .btn:hover { border-color:rgba(60,110,200,.3); background:rgba(4,10,24,.95); }
+            .grid { display:grid; grid-template-columns:.9fr 1.1fr; gap:1rem; }
+            .card { background:rgba(8,12,20,.86); border:1px solid var(--border); border-radius:1.2rem; padding:1rem; box-shadow:0 22px 46px rgba(2,6,18,.62); }
+            label { display:block; margin:.55rem 0 .3rem; font-weight:700; }
+            input { width:100%; border:1px solid rgba(60,110,200,.12); border-radius:.8rem; padding:.76rem .82rem; background:rgba(6,10,18,.6); color:#e7efff; }
+            .submit { margin-top:.75rem; width:100%; border:none; border-radius:.8rem; padding:.78rem; background:linear-gradient(140deg,var(--primary),rgba(40,110,200,0.9)); color:#eef6ff; font-weight:800; cursor:pointer; box-shadow:0 10px 22px rgba(10,20,48,0.46); }
+            .item { border:1px solid rgba(60,110,200,.08); border-radius:.9rem; padding:.75rem; margin-bottom:.65rem; background:rgba(6,10,18,.5); transition:all .2s ease; }
+            .item:hover { border-color:rgba(60,110,200,.2); background:rgba(6,10,18,.7); }
+            .muted { color:var(--muted); font-size:.9rem; }
+            .row { display:flex; justify-content:space-between; gap:.7rem; align-items:center; flex-wrap:wrap; }
+            .status-badge { display:inline-block; padding:.35rem .6rem; border-radius:.5rem; font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em; }
+            .status-pending { background:rgba(255,149,0,0.2); color:#FFB84D; }
+            .status-assigned { background:rgba(43,95,191,0.2); color:#6BA3FF; }
+            .status-in_transit { background:rgba(255,107,107,0.2); color:#FF9999; }
+            .status-completed { background:rgba(16,200,166,0.2); color:#58FFD1; }
+            .danger { border:1px solid rgba(255,116,150,.4); color:#ffc8d9; background:rgba(81,16,35,.34); border-radius:.7rem; padding:.45rem .66rem; font-weight:700; cursor:pointer; transition:all .2s ease; }
+            .danger:hover { background:rgba(81,16,35,.5); }
+            .success-msg { margin-bottom:.8rem; padding:.75rem .85rem; border-radius:.8rem; background:rgba(16,200,166,0.15); border:1px solid rgba(16,200,166,0.3); color:#58FFD1; font-size:.95rem; }
+            .error-msg { margin-bottom:.8rem; padding:.75rem .85rem; border-radius:.8rem; background:rgba(255,107,107,0.15); border:1px solid rgba(255,107,107,0.3); color:#FF9999; font-size:.95rem; }
+            @media (max-width: 900px) { .grid { grid-template-columns:1fr; } }
         </style>
     </head>
     <body>
-        <header class="nav">
-            <div class="container nav-inner">
-                <a class="brand" href="/dashboard"><span class="brand-mark"></span><span>AgriPool Farmer</span></a>
-                <div style="display:flex; gap:.7rem; flex-wrap:wrap;">
-                    <a class="btn btn-secondary" href="/dashboard">All dashboards</a>
-                    <a class="btn btn-primary" href="/">Home</a>
+        <div class="container">
+            <header class="top">
+                <a href="{{ route('dashboard.index') }}" class="brand" style="text-decoration:none; color:inherit;"><span class="mark"></span><span>AgriPool</span></a>
+                <div style="display:flex; gap:.6rem;">
+                    <a class="btn" href="{{ route('dashboard.index') }}">← Back</a>
+                    <form method="post" action="{{ route('logout') }}" style="display:contents;">@csrf <button class="btn" type="submit">Logout</button></form>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <main class="container">
-            <section class="hero">
-                <h1>Farmer panel with the same old AgriPool UX.</h1>
-                <p class="lead">Track load requests, assigned vehicles, and completion states in the same familiar card layout.</p>
-            </section>
-            <section class="grid">
-                <article class="card">
-                    <h2>Open requests</h2>
-                    <div class="list">
-                        <div class="row"><span>Wheat pickup - Bhopal</span><small>Pending match</small></div>
-                        <div class="row"><span>Rice transport - Sehore</span><small>Driver assigned</small></div>
-                        <div class="row"><span>Equipment move - Vidisha</span><small>In transit</small></div>
-                    </div>
-                </article>
-                <article class="card">
-                    <h2>Quick actions</h2>
-                    <div class="list">
-                        <div class="row"><span>Create new booking</span><small>Start</small></div>
-                        <div class="row"><span>Open tracking board</span><small>Live</small></div>
-                        <div class="row"><span>Review payment status</span><small>Secure</small></div>
-                    </div>
-                </article>
-            </section>
-        </main>
+            @if(session('status')) <div class="success-msg">✓ {{ session('status') }}</div> @endif
+            @if($errors->any()) <div class="error-msg">@foreach($errors->all() as $e)<div>• {{ $e }}</div>@endforeach</div> @endif
+
+            <main class="grid">
+                <section class="card">
+                    <h2>Create Delivery Request</h2>
+                    <p class="muted">Only your farmer account can create and delete your own records.</p>
+                    <form method="post" action="{{ route('deliveries.store') }}">
+                        @csrf
+                        <label for="title">Load title</label>
+                        <input id="title" name="title" required>
+                        <label for="pickup_location">Pickup location</label>
+                        <input id="pickup_location" name="pickup_location" required>
+                        <label for="dropoff_location">Drop-off location</label>
+                        <input id="dropoff_location" name="dropoff_location" required>
+                        <button class="submit" type="submit">Add Delivery</button>
+                    </form>
+                </section>
+
+                <section class="card">
+                    <h2>Your Delivery Data</h2>
+                    <p class="muted">Real records from database.</p>
+                    @forelse($deliveries as $delivery)
+                        <article class="item">
+                            <div class="row">
+                                <strong>{{ $delivery->title }}</strong>
+                                <span class="status-badge status-{{ str_replace('_', '_', $delivery->status) }}">{{ str_replace('_', ' ', strtoupper($delivery->status)) }}</span>
+                            </div>
+                            <div class="muted" style="margin-top:.4rem;">{{ $delivery->pickup_location }} → {{ $delivery->dropoff_location }}</div>
+                            <div class="muted">Assigned to: {{ $delivery->driver?->name ?? 'Not assigned' }}</div>
+                            <div class="muted">Created: {{ $delivery->created_at->format('M d, H:i') }}</div>
+                            <div style="margin-top:.55rem;">
+                                <form method="post" action="{{ route('deliveries.destroy', $delivery) }}">
+                                    @csrf
+                                    @method('delete')
+                                    <button class="danger" type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+                                </form>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="item muted">No deliveries yet. Add your first one.</div>
+                    @endforelse
+                </section>
+            </main>
+        </div>
     </body>
 </html>

@@ -114,6 +114,20 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'mongodb' => [
+            'driver' => 'mongodb',
+            'dsn' => env('MONGODB_DSN', env('DB_URL')),
+            'host' => env('MONGODB_HOST', 'localhost'),
+            'port' => env('MONGODB_PORT', 27017),
+            'database' => env('MONGODB_DATABASE', 'agripool'),
+            'username' => env('DB_USERNAME'),
+            'password' => env('DB_PASSWORD'),
+            'options' => env('DB_USERNAME') ? [
+                'authSource' => 'admin',
+                'authMechanism' => 'SCRAM-SHA-1',
+            ] : [],
+        ],
+
     ],
 
     /*

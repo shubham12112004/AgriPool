@@ -1,0 +1,233 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Delivery;
+use App\Support\BookingPresenter;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class BookingController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $role = $user->role ?? 'farmer';
+        $tab = $request->query('tab');
+
+        $query = Delivery::query()->with(['farmer', 'driver']);
+
+        if ($role === 'driver') {
+            if ($tab === 'requests') {
+                $query->where('status', 'pending')->whereNull('driver_id');
+            } else {
+                $query->where(function ($q) use ($user) {
+                    $q->where('driver_id', $user->id)
+                        ->orWhere(function ($q2) {
+                            $q2->where('status', 'pending')->whereNull('driver_id');
+                        });
+                });
+            }
+        } else {
+            $query->where('farmer_id', $user->id);
+        }
+
+        $bookings = $query->latest()->get()->map(fn (Delivery $d) => BookingPresenter::toArray($d));
+
+        return response()->json(['data' => $bookings]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'type' => ['required', 'string', Rule::in(['equipment', 'transport'])],
+            'title' => ['nullable', 'string', 'max:160'],
+            'pickup_location' => ['required', 'string', 'max:255'],
+            'dropoff_location' => ['required', 'string', 'max:255'],
+            'date' => ['nullable', 'date'],
+            'time' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string'],
+            'amount' => ['nullable', 'numeric', 'min:0'],
+            'pickup_lat' => ['nullable', 'numeric'],
+            'pickup_lng' => ['nullable', 'numeric'],
+            'dropoff_lat' => ['nullable', 'numeric'],
+            'dropoff_lng' => ['nullable', 'numeric'],
+        ]);
+
+        $scheduledAt = null;
+        if (! empty($validated['date'])) {
+            $scheduledAt = $validated['date'].(isset($validated['time']) ? ' '.$validated['time'] : ' 09:00:00');
+        }
+
+        $title = $validated['title'] ?? match ($validated['type']) {
+            'equipment' => 'Equipment rental',
+            default => 'Transport / driver',
+        };
+
+        $amount = (int) ($validated['amount'] ?? ($validated['type'] === 'equipment' ? 1200 : 850));
+
+        $delivery = Delivery::create([
+            'farmer_id' => $user->id,
+            'title' => $title,
+            'type' => $validated['type'],
+            'amount' => $amount,
+            'scheduled_at' => $scheduledAt,
+            'notes' => $validated['notes'] ?? null,
+            'pickup_location' => $validated['pickup_location'],
+            'dropoff_location' => $validated['dropoff_location'],
+            'pickup_lat' => $validated['pickup_lat'] ?? 30.91,
+            'pickup_lng' => $validated['pickup_lng'] ?? 75.85,
+            'dropoff_lat' => $validated['dropoff_lat'] ?? 30.88,
+            'dropoff_lng' => $validated['dropoff_lng'] ?? 75.82,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'data' => BookingPresenter::toArray($delivery->load(['farmer', 'driver'])),
+        ], 201);
+    }
+
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $delivery = $this->findAuthorized($request, $id);
+
+        return response()->json(['data' => BookingPresenter::toArray($delivery)]);
+    }
+
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $delivery = $this->findAuthorized($request, $id);
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'status' => ['sometimes', Rule::in(['pending', 'assigned', 'in_transit', 'completed', 'cancelled', 'accepted', 'in_progress'])],
+        ]);
+
+        if (isset($validated['status'])) {
+            $status = match ($validated['status']) {
+                'accepted' => 'assigned',
+                'in_progress' => 'in_transit',
+                default => $validated['status'],
+            };
+
+            if ($user->role === 'driver' && $delivery->driver_id !== $user->id) {
+                abort(403);
+            }
+
+            $delivery->status = $status;
+            $delivery->save();
+        }
+
+        return response()->json(['data' => BookingPresenter::toArray($delivery->fresh(['farmer', 'driver']))]);
+    }
+
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $delivery = $this->findAuthorized($request, $id);
+        $user = $request->user();
+
+        if ($user->role === 'farmer' && $delivery->farmer_id !== $user->id) {
+            abort(403);
+        }
+
+        $delivery->delete();
+
+        return response()->json(['deleted' => true]);
+    }
+
+    public function accept(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        abort_if(($user->role ?? '') !== 'driver', 403);
+
+        $delivery = Delivery::findOrFail($id);
+
+        if ($delivery->driver_id && $delivery->driver_id !== $user->id) {
+            return response()->json(['message' => 'Already claimed by another driver.'], 409);
+        }
+
+        $delivery->driver_id = $user->id;
+        $delivery->status = 'assigned';
+        $delivery->save();
+
+        return response()->json(['data' => BookingPresenter::toArray($delivery->load(['farmer', 'driver']))]);
+    }
+
+    public function reject(Request $request, int $id): JsonResponse
+    {
+        $delivery = Delivery::findOrFail($id);
+        $user = $request->user();
+
+        if ($user->role === 'driver' && $delivery->driver_id === $user->id) {
+            $delivery->driver_id = null;
+            $delivery->status = 'pending';
+            $delivery->save();
+        } elseif ($user->role === 'farmer' && $delivery->farmer_id === $user->id) {
+            $delivery->status = 'cancelled';
+            $delivery->save();
+        } else {
+            abort(403);
+        }
+
+        return response()->json(['data' => BookingPresenter::toArray($delivery->fresh(['farmer', 'driver']))]);
+    }
+
+    public function mapMarkers(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $role = $user->role ?? 'farmer';
+
+        $deliveries = Delivery::query()
+            ->whereIn('status', ['pending', 'assigned', 'in_transit'])
+            ->when($role === 'farmer', fn ($q) => $q->where('farmer_id', $user->id))
+            ->when($role === 'driver', fn ($q) => $q->where(function ($q2) use ($user) {
+                $q2->whereNull('driver_id')->orWhere('driver_id', $user->id);
+            }))
+            ->latest()
+            ->limit(20)
+            ->get();
+
+        $markers = [];
+        foreach ($deliveries as $delivery) {
+            foreach (BookingPresenter::markers($delivery) as $m) {
+                $markers[] = array_merge($m, ['booking_id' => $delivery->id]);
+            }
+        }
+
+        $vehicle = $user->vehicle;
+        if ($vehicle && $vehicle->available) {
+            $markers[] = [
+                'position' => [30.9, 75.8],
+                'popup' => '<b>Your vehicle</b><br/>'.$vehicle->registration.' · Available',
+            ];
+        }
+
+        if ($markers === []) {
+            $markers = [
+                ['position' => [30.91, 75.85], 'popup' => '<b>Demo driver</b><br/>Available nearby'],
+                ['position' => [30.88, 75.82], 'popup' => '<b>Demo equipment</b><br/>Tractor · ₹800/day'],
+            ];
+        }
+
+        return response()->json(['data' => $markers]);
+    }
+
+    private function findAuthorized(Request $request, int $id): Delivery
+    {
+        $delivery = Delivery::with(['farmer', 'driver'])->findOrFail($id);
+        $user = $request->user();
+        $role = $user->role ?? 'farmer';
+
+        $allowed = $delivery->farmer_id === $user->id
+            || $delivery->driver_id === $user->id
+            || ($role === 'driver' && $delivery->status === 'pending' && ! $delivery->driver_id);
+
+        abort_if(! $allowed, 403);
+
+        return $delivery;
+    }
+}

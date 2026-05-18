@@ -1,0 +1,63 @@
+{
+  "app": {
+    "name": "एग्रीपूल",
+    "tagline": "संसाधन साझा करें, एक साथ बढ़ें"
+  },
+  "nav": {
+    "home": "होम",
+    "features": "विशेषताएं",
+    "howItWorks": "कैसे काम करता है",
+    "faq": "सवाल",
+    "login": "साइन इन",
+    "dashboard": "डैशबोर्ड",
+    "logout": "लॉगआउट",
+    "overview": "झलक",
+    "bookings": "बुकिंग",
+    "map": "नक्शा",
+    "equipment": "उपकरण",
+    "payments": "भुगतान",
+    "saved": "सहेजे",
+    "settings": "सेटिंग्स",
+    "requests": "अनुरोध",
+    "vehicle": "वाहन",
+    "earnings": "कमाई",
+    "myEquipment": "मेरे उपकरण",
+    "rentals": "किराए",
+    "marketplace": "बाज़ार",
+    "orders": "ऑर्डर",
+    "users": "उपयोगकर्ता",
+    "verification": "सत्यापन",
+    "moderation": "मॉडरेशन",
+    "analytics": "विश्लेषण",
+    "notifications": "सूचनाएं"
+  },
+  "home": {
+    "hero": {
+      "title": "एग्रीपूल — संसाधन साझा करें, एक साथ बढ़ें",
+      "subtitle": "किसान, चालक, उपकरण मालिक और खरीदार को एक मंच पर कनेक्ट करें।",
+      "cta": "शुरू करें",
+      "learnMore": "अधिक जानें"
+    },
+    "features": {
+      "title": "विशेषताएं",
+      "feature1": "उपकरण किराया",
+      "feature2": "परिवहन सेवा",
+      "feature3": "फसल बाजार"
+    }
+  },
+  "auth": {
+    "signin": "साइन इन",
+    "signup": "साइन अप",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "continueWithGoogle": "Google के साथ जारी रखें",
+    "forgotPassword": "पासवर्ड भूल गए?"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "welcome": "एग्रीपूल में स्वागत है"
+  },
+  "footer": {
+    "copyright": "कॉपीराइट © 2026 एग्रीपूल"
+  }
+}
