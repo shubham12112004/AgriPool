@@ -3,32 +3,12 @@ import { CheckCircle2 } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 
 const SCRIPT_TIMEOUT = 8000
+const TURNSTILE_INITIALIZED_ATTR = 'data-turnstile-initialized'
 
 function isDevHost() {
   if (typeof window === 'undefined') return false
   const host = window.location.hostname
   return host === 'localhost' || host === '127.0.0.1'
-}
-
-function loadTurnstileScript() {
-  if (isDevHost()) return Promise.resolve(null)
-  if (window.turnstile) return Promise.resolve(window.turnstile)
-
-  const existing = document.querySelector('script[data-cf-turnstile]')
-  if (existing) {
-    return waitForTurnstile()
-  }
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-    script.async = true
-    script.defer = true
-    script.setAttribute('data-cf-turnstile', 'true')
-    script.onload = () => waitForTurnstile().then(resolve).catch(reject)
-    script.onerror = () => reject(new Error('Failed to load Turnstile'))
-    document.head.appendChild(script)
-  })
 }
 
 function waitForTurnstile() {
@@ -55,6 +35,7 @@ export default function TurnstileWidget({ onVerify, onError }) {
   const { isDark } = useTheme()
   const containerRef = useRef(null)
   const widgetIdRef = useRef(null)
+  const themeRef = useRef(isDark)
   const onVerifyRef = useRef(onVerify)
   const onErrorRef = useRef(onError)
   const [verified, setVerified] = useState(false)
@@ -64,6 +45,10 @@ export default function TurnstileWidget({ onVerify, onError }) {
 
   onVerifyRef.current = onVerify
   onErrorRef.current = onError
+
+  useEffect(() => {
+    themeRef.current = isDark
+  }, [isDark])
 
   const handleSuccess = (token) => {
     if (!token) return
@@ -99,14 +84,16 @@ export default function TurnstileWidget({ onVerify, onError }) {
 
     const init = async () => {
       try {
-        await loadTurnstileScript()
+        await waitForTurnstile()
         if (cancelled || !containerRef.current || !window.turnstile) return
-        if (widgetIdRef.current != null) return
+        if (widgetIdRef.current != null || containerRef.current.getAttribute(TURNSTILE_INITIALIZED_ATTR) === 'true') return
+
+        containerRef.current.setAttribute(TURNSTILE_INITIALIZED_ATTR, 'true')
 
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          theme: isDark ? 'dark' : 'light',
-          retry: 'auto',
+          theme: themeRef.current ? 'dark' : 'light',
+          retry: 'never',
           callback: (token) => handleSuccess(token),
           'expired-callback': () => handleExpired(),
           'error-callback': () => handleFailure('Turnstile verification failed. Please try again.'),
@@ -123,14 +110,6 @@ export default function TurnstileWidget({ onVerify, onError }) {
 
     return () => {
       cancelled = true
-      if (widgetIdRef.current != null && window.turnstile) {
-        try {
-          window.turnstile.remove(widgetIdRef.current)
-        } catch {
-          /* ignore */
-        }
-        widgetIdRef.current = null
-      }
     }
     // Mount once — callbacks use refs so parent re-renders do not reset the widget
     // eslint-disable-next-line react-hooks/exhaustive-deps

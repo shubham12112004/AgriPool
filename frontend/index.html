@@ -12,11 +12,11 @@
   <body>
     <div id="root"></div>
     <!-- 
-      Load Cloudflare Turnstile script globally only in production.
-      On localhost/127.0.0.1, Turnstile is auto-bypassed (dev mode).
+      Load Cloudflare Turnstile script globally so the widget can render once
+      without reinjecting the script during React re-renders.
     -->
-    <!-- Turnstile loads on demand from TurnstileWidget (explicit render mode) -->
     <script type="module" src="/src/main.jsx"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   </body>
 </html>
