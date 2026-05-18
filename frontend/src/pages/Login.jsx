@@ -10,6 +10,7 @@ import { authService } from '../services'
 import { useAuthStore } from '../store/authStore'
 import { getDashboardPathForRole } from '../store/authStore'
 import { ROLES } from '../config/roles'
+import { motion } from 'framer-motion'
 
 export default function Login() {
   const { t } = useLanguage()
@@ -76,61 +77,102 @@ export default function Login() {
   }
 
   return (
-    <>
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold mb-2">{t('auth.signin')}</h1>
-        <p className="text-neutral-500 dark:text-neutral-400">Welcome back to AgriPool</p>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md mx-auto"
+    >
+      <div className="text-center mb-8">
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+          className="w-16 h-16 bg-gradient-to-br from-agri-blue to-agri-cyan rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(43,95,191,0.3)]"
+        >
+          <Lock className="text-white w-8 h-8" />
+        </motion.div>
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">{t('auth.signin')}</h1>
+        <p className="text-neutral-500 dark:text-neutral-400 text-lg">Welcome back to AgriPool</p>
       </div>
 
-      <Card className="p-6 md:p-8">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-          <Input
-            label={t('auth.email')}
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-            icon={Mail}
-            required
-          />
-          <Input
-            label={t('auth.password')}
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            icon={Lock}
-            required
-          />
-          <div className="text-right">
-            <Link to="/forgot-password" className="text-sm text-primary-600 dark:text-primary-400 font-medium">
-              {t('auth.forgotPassword')}
-            </Link>
+      <Card className="p-6 md:p-8 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+              <Alert type="error" message={error} onClose={() => setError('')} />
+            </motion.div>
+          )}
+          
+          <div className="space-y-5">
+            <Input
+              label={t('auth.email')}
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              icon={Mail}
+              required
+              className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-blue"
+            />
+            <div className="space-y-1">
+              <Input
+                label={t('auth.password')}
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                icon={Lock}
+                required
+                className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-blue"
+              />
+              <div className="text-right pt-1">
+                <Link to="/forgot-password" className="text-sm text-agri-blue hover:text-agri-cyan transition-colors font-semibold">
+                  {t('auth.forgotPassword')}
+                </Link>
+              </div>
+            </div>
           </div>
-          <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
-          <Button type="submit" variant="primary" size="lg" fullWidth loading={loading} disabled={!turnstileVerified && !isDevHost}>
+
+          <div className="pt-2">
+            <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
+          </div>
+
+          <Button 
+            type="submit" 
+            variant="primary" 
+            size="lg" 
+            fullWidth 
+            loading={loading} 
+            disabled={!turnstileVerified && !isDevHost}
+            className="bg-gradient-to-r from-agri-blue to-agri-cyan border-0 shadow-[0_0_20px_rgba(43,95,191,0.3)] hover:shadow-[0_0_30px_rgba(24,194,255,0.4)] text-lg h-12"
+          >
             Sign In
           </Button>
-          <div className="relative py-2">
-            <span className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-neutral-200 dark:border-dark-border" />
-            </span>
-            <span className="relative flex justify-center text-xs uppercase text-neutral-500 bg-white dark:bg-dark-card px-2">
-              Or
-            </span>
+
+          <div className="relative py-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200 dark:border-dark-border" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 text-xs font-semibold uppercase text-neutral-500 bg-white dark:bg-dark-card tracking-wider">
+                Or continue with
+              </span>
+            </div>
           </div>
+          
           <GoogleAuthButton />
         </form>
-        <p className="text-center mt-6 text-sm text-neutral-500">
+        
+        <p className="text-center mt-8 text-neutral-500">
           Don&apos;t have an account?{' '}
-          <Link to="/register" className="font-semibold text-primary-600 dark:text-primary-400">
+          <Link to="/register" className="font-bold text-agri-blue hover:text-agri-cyan transition-colors">
             {t('auth.signup')}
           </Link>
         </p>
       </Card>
-    </>
+    </motion.div>
   )
 }

@@ -20,6 +20,9 @@ module.exports = {
           800: '#166534',
           900: '#145231',
         },
+        'agri-green': '#10c8a6',
+        'agri-blue': '#2b5fbf',
+        'agri-cyan': '#18c2ff',
         // Neutral
         neutral: {
           50: '#f9fafb',
@@ -96,6 +99,9 @@ module.exports = {
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-down': 'slideDown 0.5s ease-out',
         'pulse-soft': 'pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'aurora': 'auroraShift 16s linear infinite',
+        'float': 'floatCard 6s ease-in-out infinite',
+        'scroll': 'scroll 30s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -113,6 +119,19 @@ module.exports = {
         pulseSoft: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '.8' },
+        },
+        auroraShift: {
+          '0%': { transform: 'rotate(0deg) scale(1)' },
+          '50%': { transform: 'rotate(180deg) scale(1.08)' },
+          '100%': { transform: 'rotate(360deg) scale(1)' },
+        },
+        floatCard: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        scroll: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-100%)' },
         },
       },
     },

@@ -179,108 +179,116 @@ export default function Home() {
   return (
     <div className={`transition-colors duration-300 ${isDark ? 'bg-dark-bg' : 'bg-white'}`}>
       {/* Hero Section */}
-      <section className="relative pt-28 pb-20 px-4 overflow-hidden">
-        <div
-          aria-hidden
-          className={`absolute inset-0 -z-10 ${
-            isDark
-              ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-900/40 via-dark-bg to-dark-bg'
-              : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-100 via-white to-white'
-          }`}
+      <section className="relative pt-28 pb-32 px-4 overflow-hidden">
+        {/* Aurora Background */}
+        <div 
+          className="absolute inset-[-30%] -z-10 animate-aurora opacity-50 blur-[90px] pointer-events-none" 
+          style={{ background: 'conic-gradient(from 30deg at 40% 30%, rgba(58,124,255,0), rgba(58,124,255,0.25), rgba(36,208,255,0), rgba(16,200,166,0.25), rgba(58,124,255,0))' }}
         />
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary-400/20 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-emerald-400/15 rounded-full blur-3xl -z-10" />
-        <motion.div
-          className="max-w-7xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div
-            variants={itemVariants}
-            className="text-center mb-12"
-          >
+        <div className="absolute top-0 left-1/4 w-[40rem] h-[40rem] bg-agri-blue/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
+        <div className="absolute top-1/3 right-1/4 w-[30rem] h-[30rem] bg-agri-green/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left: Text */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block mb-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="z-10"
             >
-              <div className="px-4 py-2 bg-primary-100 dark:bg-primary-900/30 rounded-full border border-primary-300 dark:border-primary-700">
-                <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
-                  ✨ Revolutionizing Agriculture Technology
-                </span>
+              <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-agri-cyan/30 bg-agri-cyan/10 mb-8 backdrop-blur-sm">
+                <span className="w-2 h-2 rounded-full bg-agri-green animate-pulse shadow-[0_0_10px_#10c8a6]" />
+                <span className="text-sm font-medium text-agri-cyan">Now powered by Realtime Tech</span>
+              </motion.div>
+              
+              <motion.h1 variants={itemVariants} className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
+                Next-gen <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-agri-green via-agri-cyan to-agri-blue animate-pulse-soft">
+                  Agriculture
+                </span> <br/>
+                Logistics.
+              </motion.h1>
+              
+              <motion.p variants={itemVariants} className={`text-lg mb-10 max-w-xl leading-relaxed ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>
+                Connect farmers, drivers, and heavy machinery instantly. Built for scale with role-based dashboards, and seamless delivery tracking.
+              </motion.p>
+              
+              <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
+                <Link to="/register" className="px-8 py-4 rounded-xl font-bold bg-white text-[#02060f] hover:bg-gray-200 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:-translate-y-1 transition-all duration-300">
+                  Start Platform
+                </Link>
+                <a href="#how-it-works" className="px-8 py-4 rounded-xl font-bold border border-agri-blue/30 bg-[#0c121e]/50 backdrop-blur-md text-white hover:bg-agri-blue/20 transition-all duration-300 flex items-center gap-2 group">
+                  See how it works 
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </a>
+              </motion.div>
+            </motion.div>
+
+            {/* Right: Visual Container (Infinite Scroll) */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative h-[500px] w-full rounded-3xl border border-agri-blue/20 bg-[#080c14]/40 backdrop-blur-xl overflow-hidden shadow-[0_28px_60px_rgba(2,6,18,0.8)] group"
+            >
+              {/* Glass shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-20" />
+              
+              {/* Floating Icons in bg */}
+              <motion.div 
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-10 right-10 z-10 opacity-60"
+              >
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-agri-green/20 to-transparent border border-agri-green/40 flex items-center justify-center backdrop-blur-md">
+                  <Tractor size={32} className="text-agri-green" />
+                </div>
+              </motion.div>
+
+              {/* Infinite Carousel */}
+              <div className="absolute top-0 bottom-0 flex gap-4 items-center px-4 w-[200%] animate-scroll group-hover:[animation-play-state:paused]">
+                {/* Mock agriculture images */}
+                <div className="w-[280px] h-[360px] flex-shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
+                  <img src="https://images.unsplash.com/photo-1592982537447-6f2334208f34?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Tractor" />
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                    <div className="text-agri-green text-xs font-bold mb-1">AVAILABLE NOW</div>
+                    <div className="text-white font-semibold">John Deere 8R</div>
+                  </div>
+                </div>
+                <div className="w-[280px] h-[360px] flex-shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
+                  <img src="https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Harvester" />
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                    <div className="text-agri-cyan text-xs font-bold mb-1">EN ROUTE</div>
+                    <div className="text-white font-semibold">Wheat Harvester</div>
+                  </div>
+                </div>
+                <div className="w-[280px] h-[360px] flex-shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
+                  <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Farm" />
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                    <div className="text-agri-green text-xs font-bold mb-1">COMPLETED</div>
+                    <div className="text-white font-semibold">Crop Delivery</div>
+                  </div>
+                </div>
+                {/* Duplicates for seamless loop */}
+                <div className="w-[280px] h-[360px] flex-shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
+                  <img src="https://images.unsplash.com/photo-1592982537447-6f2334208f34?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Tractor" />
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                    <div className="text-agri-green text-xs font-bold mb-1">AVAILABLE NOW</div>
+                    <div className="text-white font-semibold">John Deere 8R</div>
+                  </div>
+                </div>
+                <div className="w-[280px] h-[360px] flex-shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
+                  <img src="https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Harvester" />
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                    <div className="text-agri-cyan text-xs font-bold mb-1">EN ROUTE</div>
+                    <div className="text-white font-semibold">Wheat Harvester</div>
+                  </div>
+                </div>
               </div>
             </motion.div>
-
-            <h1 className={`text-5xl md:text-7xl font-bold mb-6 leading-tight ${
-              isDark ? 'text-neutral-50' : 'text-neutral-900'
-            }`}>
-              <motion.span variants={itemVariants} className="block">
-                Connect. Grow.
-              </motion.span>
-              <motion.span 
-                variants={itemVariants}
-                className="block bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent"
-              >
-                Prosper.
-              </motion.span>
-            </h1>
-
-            <motion.p
-              variants={itemVariants}
-              className={`text-xl max-w-2xl mx-auto mb-8 leading-relaxed ${
-                isDark ? 'text-neutral-300' : 'text-neutral-600'
-              }`}
-            >
-              The all-in-one platform connecting farmers with equipment rental, transportation services, and direct market access.
-            </motion.p>
-
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <Link to="/register">
-                <Button variant="primary" size="lg" className="gap-2 shadow-glow">
-                  Get Started Free <ArrowRight size={20} />
-                </Button>
-              </Link>
-              <a href="#features">
-                <Button variant="outline" size="lg">
-                  Learn More
-                </Button>
-              </a>
-            </motion.div>
-          </motion.div>
-
-          {/* Hero Image Placeholder */}
-          <motion.div
-            variants={itemVariants}
-            className={`relative h-96 rounded-2xl overflow-hidden shadow-2xl ${
-              isDark
-                ? 'bg-gradient-to-br from-dark-card to-dark-bg border border-dark-border'
-                : 'bg-gradient-to-br from-primary-50 to-neutral-100 border border-primary-200'
-            }`}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-6xl">🌾</div>
-            </div>
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="absolute top-4 right-4 text-4xl"
-            >
-              🚜
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity }}
-              className="absolute bottom-4 left-4 text-4xl"
-            >
-              🚛
-            </motion.div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* Statistics Section */}
@@ -349,6 +357,8 @@ export default function Home() {
                 <motion.div
                   key={idx}
                   variants={itemVariants}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
                   <Card hoverable className="h-full p-6">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
@@ -406,6 +416,8 @@ export default function Home() {
                 <motion.div
                   key={idx}
                   variants={itemVariants}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
                   <Card hoverable className="h-full p-6">
                     <div className={`w-14 h-14 rounded-lg flex items-center justify-center mb-4 ${
@@ -468,6 +480,8 @@ export default function Home() {
               <motion.div
                 key={idx}
                 variants={itemVariants}
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ type: "spring", stiffness: 300 }}
                 className="relative"
               >
                 <Card className="p-6 h-full">

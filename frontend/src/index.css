@@ -148,6 +148,14 @@ body {
     @apply bg-black/10 backdrop-blur-md border border-white/10;
   }
   
+  .glass-panel {
+    @apply bg-[#0c121e]/80 backdrop-blur-md border border-[#3c6ec8]/20 shadow-2xl;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 20px rgba(24, 194, 255, 0.5);
+  }
+  
   /* Scrollbar styling */
   .scrollbar-thin::-webkit-scrollbar {
     @apply w-2 h-2;

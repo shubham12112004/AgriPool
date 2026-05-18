@@ -8,6 +8,7 @@ import GoogleAuthButton from '../components/auth/GoogleAuthButton'
 import TurnstileWidget from '../components/auth/TurnstileWidget'
 import { authService } from '../services'
 import { useAuthStore } from '../store/authStore'
+import { motion } from 'framer-motion'
 
 export default function Register() {
   const { t } = useLanguage()
@@ -96,50 +97,91 @@ export default function Register() {
   }
 
   return (
-    <>
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold mb-2">{t('auth.signup')}</h1>
-        <p className="text-neutral-500 dark:text-neutral-400">Join the agricultural revolution</p>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md mx-auto"
+    >
+      <div className="text-center mb-8">
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+          className="w-16 h-16 bg-gradient-to-br from-agri-green to-agri-cyan rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,200,166,0.3)]"
+        >
+          <User className="text-white w-8 h-8" />
+        </motion.div>
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">{t('auth.signup')}</h1>
+        <p className="text-neutral-500 dark:text-neutral-400 text-lg">Join the agricultural revolution</p>
       </div>
 
-      <Card className="p-8 shadow-premium">
+      <Card className="p-6 md:p-8 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+          {error && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+              <Alert type="error" message={error} onClose={() => setError('')} />
+            </motion.div>
+          )}
 
-          <Input label="Full Name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" icon={User} required />
-          <Input label="Email Address" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" icon={Mail} required />
-          <Input label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" icon={Phone} required />
-          <Input label="Password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" icon={Lock} hint="Minimum 8 characters" required />
-          <Input label="Confirm Password" type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" icon={Lock} required />
+          <div className="space-y-3">
+            <Input label="Full Name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" icon={User} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            <Input label="Email Address" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" icon={Mail} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            <Input label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" icon={Phone} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            <Input label="Password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" icon={Lock} hint="Minimum 8 characters" required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            <Input label="Confirm Password" type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" icon={Lock} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+          </div>
 
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-sm text-primary-600 dark:text-primary-400 font-medium">
-            {showPassword ? 'Hide' : 'Show'} password
-          </button>
+          <div className="flex justify-end">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-sm text-agri-green hover:text-agri-cyan font-semibold transition-colors">
+              {showPassword ? 'Hide' : 'Show'} password
+            </button>
+          </div>
 
-          <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
+          <div className="pt-2">
+            <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
+          </div>
 
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input type="checkbox" required className="mt-1 rounded border-neutral-300" />
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">
+          <label className="flex items-start gap-3 cursor-pointer group mt-2">
+            <input type="checkbox" required className="mt-1 rounded border-neutral-300 text-agri-green focus:ring-agri-green transition-colors" />
+            <span className="text-sm text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-800 dark:group-hover:text-neutral-200 transition-colors">
               I agree to the Terms of Service and Privacy Policy
             </span>
           </label>
 
-          <Button type="submit" variant="primary" size="lg" fullWidth className="mt-2" loading={loading} disabled={!turnstileVerified}>
+          <Button 
+            type="submit" 
+            variant="primary" 
+            size="lg" 
+            fullWidth 
+            className="mt-4 bg-gradient-to-r from-agri-green to-agri-cyan border-0 shadow-[0_0_20px_rgba(16,200,166,0.3)] hover:shadow-[0_0_30px_rgba(16,200,166,0.5)] text-lg h-12" 
+            loading={loading} 
+            disabled={!turnstileVerified}
+          >
             Create Account
           </Button>
 
-          <p className="text-center text-sm text-neutral-500">Or continue with</p>
+          <div className="relative py-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200 dark:border-dark-border" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 text-xs font-semibold uppercase text-neutral-500 bg-white dark:bg-dark-card tracking-wider">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
           <GoogleAuthButton />
         </form>
 
-        <p className="text-center mt-6 text-neutral-600 dark:text-neutral-400">
+        <p className="text-center mt-8 text-neutral-600 dark:text-neutral-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-primary-600 dark:text-primary-400">
+          <Link to="/login" className="font-bold text-agri-green hover:text-agri-cyan transition-colors">
             Sign in
           </Link>
         </p>
       </Card>
-    </>
+    </motion.div>
   )
 }
