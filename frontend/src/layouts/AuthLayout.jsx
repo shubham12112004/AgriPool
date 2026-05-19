@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, ShieldCheck, MessageCircle, MapPin, Truck } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { useLanguage } from '../hooks/useLanguage'
 
@@ -25,11 +25,11 @@ export default function AuthLayout() {
           className="absolute inset-[-30%] -z-10 animate-aurora opacity-40 blur-[90px] pointer-events-none" 
           style={{ background: 'conic-gradient(from 30deg at 40% 30%, rgba(58,124,255,0), rgba(58,124,255,0.25), rgba(36,208,255,0), rgba(16,200,166,0.25), rgba(58,124,255,0))' }}
         />
-        <div className="absolute top-0 left-0 w-[30rem] h-[30rem] bg-agri-blue/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-agri-green/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-120 h-120 bg-agri-blue/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-120 h-120 bg-agri-green/20 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
         <Link to="/" className="relative z-10 flex items-center gap-3 font-bold text-2xl group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-agri-blue to-agri-cyan flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-[0_0_20px_rgba(43,95,191,0.4)]">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-agri-blue to-agri-cyan flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-[0_0_20px_rgba(43,95,191,0.4)]">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
           <span className="font-['Outfit'] tracking-tight group-hover:text-glow transition-all">AgriPool</span>
@@ -41,12 +41,31 @@ export default function AuthLayout() {
           transition={{ delay: 0.2 }}
           className="relative z-10 max-w-md"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-agri-green via-agri-cyan to-white animate-pulse-soft">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-transparent bg-clip-text bg-linear-to-r from-agri-green via-agri-cyan to-white animate-pulse-soft">
             {t('app.tagline')}
           </h2>
           <p className="text-neutral-300 text-lg leading-relaxed mb-10">
             Connect farmers, drivers, equipment owners and buyers on India&apos;s smartest agriculture platform.
           </p>
+          <div className="grid grid-cols-2 gap-3 mb-10">
+            {[
+              { icon: Truck, label: 'Realtime dispatch' },
+              { icon: MapPin, label: 'Live route map' },
+              { icon: MessageCircle, label: 'Private chat' },
+              { icon: ShieldCheck, label: 'Secure access' },
+            ].map(({ icon: Icon, label }, idx) => (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 + idx * 0.08 }}
+                className="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 hover:bg-white/10 transition-colors"
+              >
+                <Icon size={18} className="text-agri-cyan mb-2" />
+                <p className="text-sm font-semibold text-white">{label}</p>
+              </motion.div>
+            ))}
+          </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             {[
               { stat: '50K+', label: 'Farmers' },
@@ -67,9 +86,18 @@ export default function AuthLayout() {
           </div>
         </motion.div>
 
-        <motion.div className="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center">
+        <motion.div className="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center z-0">
            {/* Decorative Grid */}
            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+        </motion.div>
+
+        {/* Tractor Animation */}
+        <motion.div 
+          className="absolute bottom-24 -left-32 z-0 opacity-30 pointer-events-none"
+          animate={{ x: ['0vw', '100vw'] }}
+          transition={{ repeat: Infinity, duration: 20, ease: 'linear' }}
+        >
+          <Tractor size={160} className="text-agri-green" />
         </motion.div>
         
         <p className="relative z-10 text-sm text-neutral-400">© 2026 AgriPool Enterprise Platform</p>
@@ -83,7 +111,7 @@ export default function AuthLayout() {
               isDark ? 'text-primary-400' : 'text-primary-600'
             }`}
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-sm font-bold">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-sm font-bold">
               A
             </div>
             AgriPool

@@ -11,6 +11,7 @@ import { cn } from '../../lib/utils'
 export default function Sidebar({ open, onClose, collapsed = false, onCollapseChange }) {
   const { isDark, toggleTheme } = useTheme()
   const { t, language, changeLanguage } = useLanguage()
+  const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role) || 'farmer'
   const navItems = getDashboardNav(role)
   const [showLangMenu, setShowLangMenu] = useState(false)
@@ -34,15 +35,20 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
           collapsed && 'lg:justify-center'
         )}
       >
-        {!collapsed && (
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-              A
-            </div>
-            <span className="font-bold text-lg">AgriPool</span>
+        <div className={cn('flex items-center gap-2.5', collapsed && 'lg:flex-col lg:gap-1')}>
+          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+            A
           </div>
-        )}
-        {collapsed && <span className="font-bold text-lg">A</span>}
+          {!collapsed && (
+            <div className="min-w-0">
+              <span className="font-bold text-lg block leading-none">AgriPool</span>
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                {user?.name || 'Connected workspace'}
+              </span>
+            </div>
+          )}
+          {collapsed && <span className="font-bold text-lg">A</span>}
+        </div>
         <button
           type="button"
           onClick={onClose}
@@ -51,6 +57,23 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
           <X size={20} />
         </button>
       </motion.div>
+
+      {!collapsed && (
+        <div className="mx-3 mt-3 rounded-2xl border border-primary-500/10 bg-primary-500/5 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-primary-600 dark:text-primary-400 font-semibold">Workspace</p>
+              <p className="text-sm font-semibold mt-1 capitalize">{role.replace('_', ' ')} dashboard</p>
+            </div>
+            <div className="h-10 w-10 rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold">
+              {String(role).slice(0, 1).toUpperCase()}
+            </div>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+            Manage bookings, chat, map views, and payments from one organized panel.
+          </p>
+        </div>
+      )}
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
@@ -136,7 +159,7 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
       {open && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} aria-hidden />}
       <aside
         className={cn(
-          'fixed lg:sticky top-0 left-0 z-50 h-screen shrink-0 border-r transition-all duration-300',
+          'fixed lg:sticky top-0 left-0 z-50 inset-y-0 shrink-0 border-r transition-all duration-300',
           isDark ? 'bg-dark-card border-dark-border' : 'bg-white border-neutral-200',
           collapsed ? 'w-20 lg:w-20' : 'w-64',
           open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'

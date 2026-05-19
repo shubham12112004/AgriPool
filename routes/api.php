@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EquipmentController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\VehicleController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -38,9 +41,12 @@ Route::middleware(['spa.auth'])->group(function () {
 
     Route::apiResource('equipment', EquipmentController::class);
     Route::get('/bookings/map-markers', [BookingController::class, 'mapMarkers']);
+    Route::get('/bookings/{id}/conversation', [ConversationController::class, 'show']);
     Route::post('/bookings/{id}/accept', [BookingController::class, 'accept']);
     Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
     Route::apiResource('bookings', BookingController::class);
+    Route::post('/conversations/{id}/messages', [ConversationController::class, 'store']);
+    Route::post('/assistant/chat', [AssistantController::class, 'chat']);
 
     Route::get('/vehicle', [VehicleController::class, 'show']);
     Route::post('/vehicle', [VehicleController::class, 'store']);
@@ -59,3 +65,5 @@ Route::middleware(['spa.auth'])->group(function () {
     Route::get('/analytics/revenue-chart', [AnalyticsController::class, 'revenueChart']);
     Route::get('/analytics/stats', [AnalyticsController::class, 'stats']);
 });
+
+Broadcast::routes(['middleware' => ['spa.auth']]);

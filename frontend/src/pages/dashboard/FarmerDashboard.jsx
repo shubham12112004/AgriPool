@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { DollarSign, Calendar, Star, TrendingUp, Plus, Truck, MapPin, ArrowRight } from 'lucide-react'
+import { DollarSign, Calendar, Star, TrendingUp, Plus, Truck, MapPin, ArrowRight, MessageCircle } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
@@ -57,11 +57,18 @@ export default function FarmerDashboard() {
         title="Welcome back"
         subtitle="Manage equipment, transport, and crop listings"
         actions={
-          <Link to="/bookings/new">
-            <Button variant="primary" className="gap-2">
-              <Plus size={18} /> New booking
-            </Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/bookings/new">
+              <Button variant="primary" className="gap-2">
+                <Plus size={18} /> New booking
+              </Button>
+            </Link>
+            <Link to="/messages">
+              <Button variant="secondary" className="gap-2">
+                <MessageCircle size={18} /> Messages
+              </Button>
+            </Link>
+          </div>
         }
       />
 

@@ -89,6 +89,19 @@ export const bookingService = {
     apiClient.put(`/bookings/${bookingId}/status`, { status }),
 }
 
+export const chatService = {
+  getBookingConversation: (bookingId) =>
+    apiClient.get(`/bookings/${bookingId}/conversation`),
+
+  sendConversationMessage: (conversationId, data) =>
+    apiClient.post(`/conversations/${conversationId}/messages`, data),
+}
+
+export const assistantService = {
+  chat: (message, context = {}) =>
+    apiClient.post('/assistant/chat', { message, context }),
+}
+
 export const equipmentService = {
   getEquipment: (params) => 
     apiClient.get('/equipment', { params }),

@@ -36,6 +36,7 @@ const PaymentSuccess = lazy(() => import('./pages/payments/PaymentSuccess'))
 const PaymentFailed = lazy(() => import('./pages/payments/PaymentFailed'))
 const PaymentHistory = lazy(() => import('./pages/payments/PaymentHistory'))
 const MapPage = lazy(() => import('./pages/MapPage'))
+const Messages = lazy(() => import('./pages/Messages'))
 const Settings = lazy(() => import('./pages/settings/Settings'))
 const SavedPage = lazy(() => import('./pages/SavedPage'))
 const BrowseProducts = lazy(() => import('./pages/marketplace/BrowseProducts'))
@@ -100,6 +101,7 @@ export default function App() {
               <Route path="/bookings" element={<BookingsList />} />
               <Route path="/bookings/new" element={<CreateBooking />} />
               <Route path="/bookings/:id" element={<BookingDetail />} />
+              <Route path="/messages" element={<Messages />} />
               <Route path="/map" element={<MapPage />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/saved" element={<SavedPage />} />

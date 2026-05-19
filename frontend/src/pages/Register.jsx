@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Mail, Lock, User, Phone } from 'lucide-react'
+import { Mail, Lock, User, Phone, Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react'
 import { useLanguage } from '../hooks/useLanguage'
 import { Button, Input, Card, Alert } from '../components/ui'
 import GoogleAuthButton from '../components/auth/GoogleAuthButton'
@@ -108,12 +108,20 @@ export default function Register() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-          className="w-16 h-16 bg-gradient-to-br from-agri-green to-agri-cyan rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,200,166,0.3)]"
+          className="w-16 h-16 bg-linear-to-br from-agri-green to-agri-cyan rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,200,166,0.3)]"
         >
           <User className="text-white w-8 h-8" />
         </motion.div>
         <h1 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">{t('auth.signup')}</h1>
         <p className="text-neutral-500 dark:text-neutral-400 text-lg">Join the agricultural revolution</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {['Farmer', 'Driver', 'Owner', 'Buyer'].map((role) => (
+            <span key={role} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-dark-border px-3 py-1 text-xs font-semibold text-neutral-600 dark:text-neutral-300 bg-white/70 dark:bg-dark-card/70 backdrop-blur-sm">
+              <ShieldCheck size={12} className="text-agri-green" />
+              {role}
+            </span>
+          ))}
+        </div>
       </div>
 
       <Card className="p-6 md:p-8 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
@@ -128,7 +136,17 @@ export default function Register() {
             <Input label="Full Name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" icon={User} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
             <Input label="Email Address" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" icon={Mail} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
             <Input label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" icon={Phone} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
-            <Input label="Password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" icon={Lock} hint="Minimum 8 characters" required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            <div className="relative">
+              <Input label="Password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" icon={Lock} hint="Minimum 8 characters" required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green pr-12" />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute right-3 top-10.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <Input label="Confirm Password" type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" icon={Lock} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
           </div>
 
@@ -154,7 +172,7 @@ export default function Register() {
             variant="primary" 
             size="lg" 
             fullWidth 
-            className="mt-4 bg-gradient-to-r from-agri-green to-agri-cyan border-0 shadow-[0_0_20px_rgba(16,200,166,0.3)] hover:shadow-[0_0_30px_rgba(16,200,166,0.5)] text-lg h-12" 
+            className="mt-4 bg-linear-to-r from-agri-green to-agri-cyan border-0 shadow-[0_0_20px_rgba(16,200,166,0.3)] hover:shadow-[0_0_30px_rgba(16,200,166,0.5)] text-lg h-12"
             loading={loading} 
             disabled={!turnstileVerified}
           >
@@ -174,6 +192,17 @@ export default function Register() {
 
           <GoogleAuthButton />
         </form>
+
+        <div className="mt-6 rounded-2xl border border-neutral-200 dark:border-dark-border bg-linear-to-r from-agri-green/10 via-agri-cyan/10 to-agri-blue/10 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold mb-2">
+            <Sparkles size={14} className="text-agri-green" />
+            What you get
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3 text-xs text-neutral-600 dark:text-neutral-300">
+            <div>Private booking threads for farmers and drivers</div>
+            <div>Route map, payments, and AI guidance in one place</div>
+          </div>
+        </div>
 
         <p className="text-center mt-8 text-neutral-600 dark:text-neutral-400">
           Already have an account?{' '}

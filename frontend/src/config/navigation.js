@@ -14,6 +14,7 @@ import {
   History,
   Heart,
   Shield,
+  MessageCircle,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -30,6 +31,7 @@ export const dashboardNavByRole = {
   [ROLES.FARMER]: [
     { label: 'nav.overview', path: '/dashboard/farmer', icon: icon(LayoutDashboard) },
     { label: 'nav.bookings', path: '/bookings', icon: icon(Calendar) },
+    { label: 'nav.messages', path: '/messages', icon: icon(MessageCircle) },
     { label: 'nav.map', path: '/map', icon: icon(Map) },
     { label: 'nav.equipment', path: '/equipment', icon: icon(Tractor) },
     { label: 'nav.payments', path: '/payments/history', icon: icon(CreditCard) },
@@ -39,6 +41,7 @@ export const dashboardNavByRole = {
   [ROLES.DRIVER]: [
     { label: 'nav.overview', path: '/dashboard/driver', icon: icon(LayoutDashboard) },
     { label: 'nav.requests', path: '/bookings?tab=requests', icon: icon(Truck) },
+    { label: 'nav.messages', path: '/messages', icon: icon(MessageCircle) },
     { label: 'nav.map', path: '/map', icon: icon(Map) },
     { label: 'nav.vehicle', path: '/settings?tab=vehicle', icon: icon(Truck) },
     { label: 'nav.earnings', path: '/payments/history', icon: icon(CreditCard) },

@@ -28,8 +28,9 @@ export default function AgriMap({
     if (!containerRef.current || mapRef.current) return
 
     const map = L.map(containerRef.current, { zoomControl: true }).setView(center, zoom)
+    // Use OpenStreetMap tiles by default (more reliable without API keys)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
+      attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map)
 
@@ -45,7 +46,29 @@ export default function AgriMap({
 
     mapRef.current = map
 
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => {
+          map.invalidateSize({ animate: false })
+        })
+      : null
+
+    if (resizeObserver) {
+      resizeObserver.observe(containerRef.current)
+    }
+
+    const onWindowResize = () => map.invalidateSize({ animate: false })
+    window.addEventListener('resize', onWindowResize)
+
+    const timeouts = [
+      setTimeout(() => map.invalidateSize({ animate: false }), 100),
+      setTimeout(() => map.invalidateSize({ animate: false }), 300),
+      setTimeout(() => map.invalidateSize({ animate: false }), 700),
+    ]
+
     return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener('resize', onWindowResize)
+      timeouts.forEach(clearTimeout)
       map.remove()
       mapRef.current = null
     }
@@ -65,6 +88,7 @@ export default function AgriMap({
       const group = L.featureGroup(markers.map((m) => L.marker(m.position)))
       map.fitBounds(group.getBounds().pad(0.2))
     }
+    map.invalidateSize({ animate: false })
   }, [markers])
 
   return (
@@ -72,9 +96,9 @@ export default function AgriMap({
       className={`rounded-2xl overflow-hidden border shadow-md ${
         isDark ? 'border-dark-border' : 'border-neutral-200'
       } ${className}`}
-      style={{ height }}
+      style={{ height, minHeight: 0, width: '100%' }}
     >
-      <div ref={containerRef} className="w-full h-full z-0" />
+      <div ref={containerRef} className="block w-full h-full min-h-0 z-0" />
     </div>
   )
 }

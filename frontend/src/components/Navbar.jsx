@@ -16,6 +16,11 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -29,11 +34,11 @@ export default function Navbar() {
     { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
   ]
 
-  const dashboardPath = user && role ? getDashboardPathForRole(role) : '/dashboard/farmer'
+  const dashboardPath = user ? getDashboardPathForRole(role) : '/register'
 
+  // Only show the buttons container after hydration is complete
   return (
-    <nav
-      className={`fixed w-full z-50 transition-all duration-300 ${
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${
         scrolled
           ? isDark
             ? 'bg-dark-bg/90 backdrop-blur-xl border-b border-dark-border shadow-premium'
@@ -154,7 +159,13 @@ export default function Navbar() {
             </motion.div>
 
             <div className="hidden sm:flex items-center gap-2">
-              {user ? (
+              {!isHydrated ? (
+                <Link to="/register">
+                  <Button variant="primary" size="md">
+                    {t('auth.signup')}
+                  </Button>
+                </Link>
+              ) : user ? (
                 <Link to={dashboardPath}>
                   <Button variant="primary" size="md">
                     {t('nav.dashboard')}

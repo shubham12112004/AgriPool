@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { DollarSign, Truck, Star, MapPin, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
+import { DollarSign, Truck, Star, MapPin, ArrowRight, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
@@ -81,7 +81,17 @@ export default function DriverDashboard() {
       variants={containerVariants}
       className="space-y-8"
     >
-      <PageHeader title="Driver hub" subtitle="Accept requests and track your route" />
+      <PageHeader
+        title="Driver hub"
+        subtitle="Accept requests and track your route"
+        actions={
+          <Link to="/messages">
+            <Button variant="secondary" className="gap-2">
+              <MessageCircle size={18} /> Messages
+            </Button>
+          </Link>
+        }
+      />
 
       {/* Stats Grid */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -11,6 +11,7 @@ const PAGE_TITLES = {
   '/dashboard/buyer': { title: 'Buyer Dashboard', subtitle: 'Browse and order fresh produce' },
   '/dashboard/admin': { title: 'Admin Panel', subtitle: 'Platform management' },
   '/bookings': { title: 'Bookings', subtitle: 'Track all your bookings' },
+  '/messages': { title: 'Messages', subtitle: 'Realtime chat and AgriPool assistance' },
   '/map': { title: 'Map', subtitle: 'Nearby services and routes' },
   '/settings': { title: 'Settings', subtitle: 'Account and preferences' },
   '/payments/history': { title: 'Payments', subtitle: 'Transaction history' },
@@ -28,14 +29,15 @@ export default function DashboardLayout() {
   )?.[1] || { title: 'AgriPool', subtitle: '' }
 
   return (
-    <div className={`min-h-screen flex ${isDark ? 'bg-dark-bg text-neutral-50' : 'bg-neutral-50 text-neutral-900'}`}>
+    <div className={`relative h-screen flex overflow-hidden ${isDark ? 'bg-dark-bg text-neutral-50' : 'bg-neutral-50 text-neutral-900'}`}>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_35%),radial-gradient(circle_at_top_right,rgba(16,200,166,0.08),transparent_30%)]" />
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         collapsed={sidebarCollapsed}
         onCollapseChange={setSidebarCollapsed}
       />
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300`}>
+      <div className={`relative flex-1 flex flex-col min-w-0 transition-all duration-300`}>
         <DashboardHeader
           title={meta.title}
           subtitle={meta.subtitle}
