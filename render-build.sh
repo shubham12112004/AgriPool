@@ -9,7 +9,7 @@ npm run build
 cd ..
 
 echo ">>> Installing Composer Dependencies..."
-composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs
 
 # Prepare SQLite Database file if using SQLite
 if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
