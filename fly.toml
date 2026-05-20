@@ -1,0 +1,28 @@
+# fly.toml app configuration file for AgriPool deployment
+
+app = "agripool-app"
+primary_region = "lax"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[env]
+  APP_ENV = "production"
+  APP_DEBUG = "false"
+  DB_CONNECTION = "sqlite"
+  DB_DATABASE = "/var/data/database.sqlite"
+  LOG_CHANNEL = "stderr"
+  SESSION_DRIVER = "cookie"
+
+[[mounts]]
+  source = "agripool_data"
+  destination = "/var/data"
+  initial_size = "1GB"
