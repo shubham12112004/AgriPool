@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { CheckCircle2, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 
-const SCRIPT_TIMEOUT = 10000
-const VERIFY_TIMEOUT = 20000
+const SCRIPT_TIMEOUT = 5000
+const VERIFY_TIMEOUT = 8000
 const TURNSTILE_INITIALIZED_ATTR = 'data-turnstile-initialized'
 
 function isDevHost() {
@@ -144,7 +144,8 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
         sitekey: siteKey,
         theme: themeRef.current ? 'dark' : 'light',
         retry: 'auto',
-        'retry-interval': 3000,
+        'retry-interval': 1500,
+        appearance: 'interaction-only',
         callback: (token) => handleSuccess(token),
         'expired-callback': () => handleExpired(),
         'error-callback': (errorCode) => {
