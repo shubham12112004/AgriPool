@@ -1,4 +1,16 @@
-# Use official PHP Apache base image
+# ==========================================
+# Stage 1: Build the React Frontend
+# ==========================================
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app
+COPY frontend/package*.json ./frontend/
+RUN cd frontend && npm ci
+COPY frontend/ ./frontend/
+RUN cd frontend && npm run build
+
+# ==========================================
+# Stage 2: Build the PHP Apache Production Server
+# ==========================================
 FROM php:8.2-apache
 
 # Install system dependencies
@@ -19,10 +31,6 @@ RUN docker-php-ext-install pdo pdo_mysql zip mbstring exif pcntl bcmath gd
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Node.js & npm (needed to build frontend React SPA)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
-
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
@@ -37,11 +45,11 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
+# Copy the compiled React frontend from Stage 1
+COPY --from=frontend-builder /app/public/spa ./public/spa
+
 # Install Composer dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs
-
-# Install Frontend packages and compile React assets
-RUN cd frontend && npm install && npm run build
 
 # Adjust folder ownership for Apache
 RUN chown -R www-data:www-data storage bootstrap/cache
