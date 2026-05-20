@@ -3,10 +3,8 @@
 # ==========================================
 FROM node:18 AS frontend-builder
 WORKDIR /app
-COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install --include=dev
-COPY frontend/ ./frontend/
-RUN cd frontend && npm run build
+COPY frontend ./frontend
+RUN cd frontend && npm install --include=dev && npm run build
 
 # ==========================================
 # Stage 2: Build the PHP Apache Production Server
