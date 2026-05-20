@@ -4,7 +4,7 @@
 FROM node:18 AS frontend-builder
 WORKDIR /app
 COPY frontend ./frontend
-RUN cd frontend && npm install --include=dev && npm run build
+RUN cd frontend && npm install --include=dev && chmod +x node_modules/.bin/vite && npm run build
 
 # ==========================================
 # Stage 2: Build the PHP Apache Production Server
