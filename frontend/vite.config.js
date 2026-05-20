@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/spa/',
   build: {
     outDir: resolve(__dirname, '../public/spa'),
     emptyOutDir: true,

@@ -21,6 +21,11 @@ primary_region = "lax"
   DB_DATABASE = "/var/data/database.sqlite"
   LOG_CHANNEL = "stderr"
   SESSION_DRIVER = "cookie"
+  CACHE_STORE = "database"
+  # Set these to your actual deployed domain:
+  # APP_URL = "https://agripool-app.fly.dev"
+  # FRONTEND_URL = "https://agripool-app.fly.dev"
+  # GOOGLE_REDIRECT_URI = "https://agripool-app.fly.dev/auth/google/callback"
 
 [[mounts]]
   source = "agripool_data"

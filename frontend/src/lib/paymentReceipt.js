@@ -1,7 +1,35 @@
 import { formatCurrency } from './utils'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
-const APP_BASE = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000'
+const getAppBase = () => {
+  const envUrl = import.meta.env.VITE_APP_URL;
+  const isProd =
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+
+  if (isProd) {
+    return window.location.origin;
+  }
+
+  return envUrl || APP_ORIGIN;
+}
+
+const getApiBase = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  const isProd =
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+
+  if (isProd) {
+    return `${window.location.origin}/api`;
+  }
+
+  return envUrl || `${APP_ORIGIN}/api`;
+}
+
+const APP_BASE = getAppBase();
+const API_BASE = getApiBase();
 
 export function saveLastPayment(payment) {
   if (payment) {

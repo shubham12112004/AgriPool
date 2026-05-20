@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
@@ -94,11 +95,25 @@ class AuthController extends Controller
         return redirect('/');
     }
 
+    /**
+     * Get the OAuth return URL, using APP_URL as fallback for production.
+     * In production, the SPA is served from the same origin as Laravel.
+     */
+    private function getOAuthReturnUrl(): string
+    {
+        $appUrl = rtrim(config('app.url', url('/')), '/');
+        return $appUrl . '/auth/oauth/callback';
+    }
+
     public function redirectToGoogle(): RedirectResponse
     {
-        $returnTo = request()->query('return_to', config('app.frontend_url').'/auth/oauth/callback');
+        $defaultReturn = $this->getOAuthReturnUrl();
+        $returnTo = request()->query('return_to', $defaultReturn);
+
         if (is_string($returnTo) && filter_var($returnTo, FILTER_VALIDATE_URL)) {
             request()->session()->put('oauth_return_to', $returnTo);
+        } else {
+            request()->session()->put('oauth_return_to', $defaultReturn);
         }
 
         $role = request()->query('role');
@@ -107,18 +122,38 @@ class AuthController extends Controller
         }
 
         if (! config('services.google.client_id')) {
-            return redirect($returnTo.'?error='.urlencode('Google OAuth is not configured. Add GOOGLE_CLIENT_ID to .env'));
+            Log::error('Google OAuth not configured: GOOGLE_CLIENT_ID is missing from .env');
+            $errorReturn = request()->session()->pull('oauth_return_to', $defaultReturn);
+            return redirect($errorReturn.'?error='.urlencode('Google OAuth is not configured. Please contact the administrator.'));
         }
 
-        return Socialite::driver('google')->redirect();
+        try {
+            // Dynamically set the redirect URL based on the current request's host
+            // This ensures it works on any domain without env changes
+            $redirectUrl = url('/auth/google/callback');
+            return Socialite::driver('google')
+                ->redirectUrl($redirectUrl)
+                ->redirect();
+        } catch (Throwable $e) {
+            Log::error('Google OAuth redirect failed: ' . $e->getMessage());
+            $errorReturn = request()->session()->pull('oauth_return_to', $defaultReturn);
+            return redirect($errorReturn.'?error='.urlencode('Failed to connect to Google. Please try again.'));
+        }
     }
 
     public function handleGoogleCallback(Request $request): RedirectResponse
     {
+        $defaultReturn = $this->getOAuthReturnUrl();
+
         try {
-            $googleUser = Socialite::driver('google')->user();
-        } catch (Throwable) {
-            $returnTo = $request->session()->pull('oauth_return_to', config('app.frontend_url').'/auth/oauth/callback');
+            // Use the same dynamic redirect URL for the callback
+            $redirectUrl = url('/auth/google/callback');
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl($redirectUrl)
+                ->user();
+        } catch (Throwable $e) {
+            Log::error('Google OAuth callback failed: ' . $e->getMessage());
+            $returnTo = $request->session()->pull('oauth_return_to', $defaultReturn);
 
             return redirect($returnTo.'?error='.urlencode('Google login failed. Please try again.'));
         }
@@ -134,14 +169,15 @@ class AuthController extends Controller
                 'email' => $googleUser->email,
                 'password' => Hash::make(bin2hex(random_bytes(20))),
                 'google_id' => $googleUser->id,
-                'role' => in_array($role, ['farmer', 'driver'], true) ? $role : 'farmer',
+                // Allow all four supported roles for new OAuth users
+                'role' => in_array($role, ['farmer', 'driver', 'buyer', 'equipment_owner'], true) ? $role : 'farmer',
             ]);
         } else {
             $user->google_id = $googleUser->id;
             $user->save();
         }
 
-        $returnTo = $request->session()->pull('oauth_return_to', config('app.frontend_url').'/auth/oauth/callback');
+        $returnTo = $request->session()->pull('oauth_return_to', $defaultReturn);
         $code = $this->spaTokens->issueOAuthCode($user);
 
         return redirect($returnTo.(str_contains($returnTo, '?') ? '&' : '?').'code='.urlencode($code));

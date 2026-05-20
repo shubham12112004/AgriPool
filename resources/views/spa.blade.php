@@ -28,7 +28,6 @@
             document.body.innerHTML = '<div><h1>AgriPool frontend not built</h1><p>Run <code>cd frontend && npm install && npm run build</code></p><p>Or for development: <code>cd frontend && npm run dev</code> then refresh this page.</p></div>';
         });</script>
     @endif
-    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
@@ -37,6 +36,8 @@
             }, 'google_translate_element');
         }
     </script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script type="text/javascript">
         // Actively snipe the Google Translate banner when it tries to inject itself

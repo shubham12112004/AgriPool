@@ -8,6 +8,31 @@ import { formatCurrency } from '../../lib/utils'
 import { paymentService } from '../../services'
 import { saveLastPayment } from '../../lib/paymentReceipt'
 
+function loadRazorpayScript() {
+  return new Promise((resolve, reject) => {
+    if (window.Razorpay) {
+      resolve(true)
+      return
+    }
+
+    const existingScript = document.querySelector('script[data-razorpay-checkout]')
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(true), { once: true })
+      existingScript.addEventListener('error', () => reject(new Error('Razorpay script failed to load')), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    script.defer = true
+    script.dataset.razorpayCheckout = 'true'
+    script.onload = () => resolve(true)
+    script.onerror = () => reject(new Error('Razorpay script failed to load'))
+    document.body.appendChild(script)
+  })
+}
+
 export default function PaymentCheckout() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -44,6 +69,7 @@ export default function PaymentCheckout() {
   const handlePay = async () => {
     setLoading(true)
     try {
+      await loadRazorpayScript()
       const order = await paymentService.createOrder({ amount, booking_id: bookingId })
       if (window.Razorpay && order?.key && !order.demo) {
         const rzp = new window.Razorpay({

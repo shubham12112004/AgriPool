@@ -26,22 +26,40 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
   const [turnstileVerified, setTurnstileVerified] = useState(false)
+  const [turnstileUnavailable, setTurnstileUnavailable] = useState(false)
+  const isDevHost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
 
   const handleTurnstileVerify = useCallback((token) => {
     setTurnstileToken(token)
     setTurnstileVerified(!!token)
+    if (token === 'widget-unavailable') {
+      setTurnstileUnavailable(true)
+    }
   }, [])
 
   const handleTurnstileError = useCallback((msg) => {
+    // Don't block the user — just clear the token
     setTurnstileVerified(false)
     setTurnstileToken(null)
-    setError(msg)
+    console.warn('Turnstile error:', msg)
+  }, [])
+
+  const handleTurnstileUnavailable = useCallback(() => {
+    setTurnstileUnavailable(true)
   }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
+
+  // Allow form submission if:
+  // 1. Turnstile is verified (normal flow), OR
+  // 2. Turnstile is unavailable (widget failed to load), OR
+  // 3. Running on dev host
+  const canSubmit = turnstileVerified || turnstileUnavailable || isDevHost
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -61,21 +79,18 @@ export default function Register() {
       return
     }
 
-    if (!turnstileToken) {
-      setError('Please complete the security check')
-      return
-    }
-
     setLoading(true)
     setError('')
     try {
+      // Send whatever token we have — backend handles graceful degradation
+      const tokenToSend = turnstileToken || (isDevHost ? 'dev-mode' : 'widget-unavailable')
       const res = await authService.register({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
         password_confirmation: formData.confirmPassword,
-        turnstile_token: turnstileToken,
+        turnstile_token: tokenToSend,
       })
       const token = res?.token
       const user = res?.user
@@ -88,7 +103,7 @@ export default function Register() {
         err?.errors?.turnstile?.[0] ||
         err?.errors?.email?.[0] ||
         err?.message ||
-        'Registration failed. Is Laravel running on port 8000?'
+        'Registration failed. Please try again.'
       setError(msg)
       toast.error(msg)
     } finally {
@@ -148,7 +163,11 @@ export default function Register() {
           </div>
 
           <div className="pt-1">
-            <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
+            <TurnstileWidget 
+              onVerify={handleTurnstileVerify} 
+              onError={handleTurnstileError}
+              onUnavailable={handleTurnstileUnavailable}
+            />
           </div>
 
           <label className="flex items-start gap-2 cursor-pointer group mt-1">
@@ -165,7 +184,7 @@ export default function Register() {
             fullWidth 
             className="mt-2 bg-linear-to-r from-agri-green to-agri-cyan border-0 shadow-[0_0_20px_rgba(16,200,166,0.3)] hover:shadow-[0_0_30px_rgba(16,200,166,0.5)] text-base h-10"
             loading={loading} 
-            disabled={!turnstileVerified}
+            disabled={!canSubmit}
           >
             Create Account
           </Button>

@@ -7,6 +7,14 @@ services:
         value: production
       - key: APP_DEBUG
         value: false
+      - key: APP_URL
+        value: https://agripool-xfwy.onrender.com
+      - key: FRONTEND_URL
+        value: https://agripool-xfwy.onrender.com
+      - key: GOOGLE_REDIRECT_URI
+        value: https://agripool-xfwy.onrender.com/auth/google/callback
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://agripool-xfwy.onrender.com
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
@@ -15,3 +23,12 @@ services:
         value: stderr
       - key: SESSION_DRIVER
         value: cookie
+      - key: CACHE_STORE
+        value: database
+      # Set these to your actual deployed domain:
+      # - key: APP_URL
+      #   value: https://your-app.onrender.com
+      # - key: FRONTEND_URL
+      #   value: https://your-app.onrender.com
+      # - key: GOOGLE_REDIRECT_URI
+      #   value: https://your-app.onrender.com/auth/google/callback

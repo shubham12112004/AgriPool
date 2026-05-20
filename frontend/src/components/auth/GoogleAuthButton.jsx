@@ -1,14 +1,36 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '../ui'
 
-const LARAVEL_URL = (import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000').replace(/\/$/, '')
+const getLaravelUrl = () => {
+  const envUrl = import.meta.env.VITE_APP_URL;
+  const isProd =
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+
+  if (isProd) {
+    // In production, Laravel serves the SPA from the same origin
+    return window.location.origin;
+  }
+
+  return (envUrl || window.location.origin).replace(/\/$/, '');
+}
 
 export default function GoogleAuthButton({ className = '', fullWidth = true, role = null }) {
+  const [loading, setLoading] = useState(false)
+
   const handleGoogle = () => {
-    const returnTo = `${window.location.origin}/auth/oauth/callback`
-    const params = new URLSearchParams({ return_to: returnTo })
-    if (role) params.set('role', role)
-    window.location.href = `${LARAVEL_URL}/auth/google/redirect?${params.toString()}`
+    setLoading(true)
+    try {
+      const laravelUrl = getLaravelUrl()
+      const returnTo = `${window.location.origin}/auth/oauth/callback`
+      const params = new URLSearchParams({ return_to: returnTo })
+      if (role) params.set('role', role)
+      window.location.href = `${laravelUrl}/auth/google/redirect?${params.toString()}`
+    } catch (err) {
+      console.error('Google auth redirect error:', err)
+      setLoading(false)
+    }
   }
 
   return (
@@ -19,6 +41,7 @@ export default function GoogleAuthButton({ className = '', fullWidth = true, rol
       fullWidth={fullWidth}
       className={className}
       onClick={handleGoogle}
+      loading={loading}
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden>
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

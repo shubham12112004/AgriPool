@@ -6,6 +6,24 @@ import apiClient from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
 import { getDashboardPathForRole } from '../../store/authStore'
 
+const ERROR_MESSAGES = {
+  access_denied: 'Google sign-in was cancelled or access was denied. Please try again.',
+  invalid_scope: 'Google sign-in failed due to invalid permissions. Please contact support.',
+  server_error: 'Google encountered a server error. Please try again later.',
+  temporarily_unavailable: 'Google sign-in is temporarily unavailable. Please try again later.',
+}
+
+function getReadableError(errorParam) {
+  if (!errorParam) return null
+  const decoded = decodeURIComponent(errorParam)
+  // Check for known error codes
+  const lowerError = decoded.toLowerCase()
+  for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
+    if (lowerError.includes(key)) return message
+  }
+  return decoded
+}
+
 export default function OAuthCallback() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -17,14 +35,15 @@ export default function OAuthCallback() {
     const code = searchParams.get('code')
 
     if (error) {
-      setMessage(decodeURIComponent(error))
-      toast.error(decodeURIComponent(error))
+      const readableError = getReadableError(error)
+      setMessage(readableError)
+      toast.error(readableError)
       const t = setTimeout(() => navigate('/login', { replace: true }), 3000)
       return () => clearTimeout(t)
     }
 
     if (!code) {
-      setMessage('Missing authorization code.')
+      setMessage('Missing authorization code. Redirecting to login…')
       const t = setTimeout(() => navigate('/login', { replace: true }), 2500)
       return () => clearTimeout(t)
     }
@@ -42,7 +61,7 @@ export default function OAuthCallback() {
         const msg =
           (typeof err?.message === 'string' && err.message) ||
           err?.errors?.code?.[0] ||
-          'Google sign-in failed. Ensure Laravel is running and Google OAuth is configured in .env.'
+          'Google sign-in failed. Please try again.'
         setMessage(msg)
         toast.error(msg)
         setTimeout(() => navigate('/login', { replace: true }), 4000)

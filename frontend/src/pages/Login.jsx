@@ -22,6 +22,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
   const [turnstileVerified, setTurnstileVerified] = useState(false)
+  const [turnstileUnavailable, setTurnstileUnavailable] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const isDevHost =
@@ -30,13 +31,23 @@ export default function Login() {
 
   const handleTurnstileVerify = useCallback((token) => {
     setTurnstileToken(token)
+    // 'widget-unavailable' means the widget failed but user can still proceed
     setTurnstileVerified(!!token)
+    if (token === 'widget-unavailable') {
+      setTurnstileUnavailable(true)
+    }
   }, [])
 
   const handleTurnstileError = useCallback((msg) => {
+    // Don't block the user — just clear the token, the form will still be submittable
     setTurnstileVerified(false)
     setTurnstileToken(null)
-    setError(msg)
+    // Don't set form error for turnstile failures — show it in the widget itself
+    console.warn('Turnstile error:', msg)
+  }, [])
+
+  const handleTurnstileUnavailable = useCallback(() => {
+    setTurnstileUnavailable(true)
   }, [])
 
   const handleChange = (e) => {
@@ -44,21 +55,25 @@ export default function Login() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  // Allow form submission if:
+  // 1. Turnstile is verified (normal flow), OR
+  // 2. Turnstile is unavailable (widget failed to load, but user can proceed), OR
+  // 3. Running on dev host
+  const canSubmit = turnstileVerified || turnstileUnavailable || isDevHost
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields')
       return
     }
-    if (!turnstileToken && !isDevHost) {
-      setError('Please complete the security check')
-      return
-    }
 
     setLoading(true)
     setError('')
     try {
-      const res = await authService.login(formData.email, formData.password, turnstileToken || 'dev-mode')
+      // Send whatever token we have — backend handles graceful degradation
+      const tokenToSend = turnstileToken || (isDevHost ? 'dev-mode' : 'widget-unavailable')
+      const res = await authService.login(formData.email, formData.password, tokenToSend)
       const token = res?.token
       const user = res?.user
       if (token) {
@@ -78,7 +93,7 @@ export default function Login() {
         err?.errors?.email?.[0] ||
         err?.errors?.turnstile?.[0] ||
         err?.message ||
-        'Login failed. Start Laravel: php artisan serve'
+        'Login failed. Please check your credentials and try again.'
       setError(msg)
     } finally {
       setLoading(false)
@@ -168,7 +183,11 @@ export default function Login() {
           </div>
 
           <div className="pt-1">
-            <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
+            <TurnstileWidget 
+              onVerify={handleTurnstileVerify} 
+              onError={handleTurnstileError}
+              onUnavailable={handleTurnstileUnavailable}
+            />
           </div>
 
           <Button 
@@ -177,7 +196,7 @@ export default function Login() {
             size="md" 
             fullWidth 
             loading={loading} 
-            disabled={!turnstileVerified && !isDevHost}
+            disabled={!canSubmit}
             className="bg-linear-to-r from-agri-blue to-agri-cyan border-0 shadow-[0_0_20px_rgba(43,95,191,0.3)] hover:shadow-[0_0_30px_rgba(24,194,255,0.4)] text-base h-10"
           >
             Sign In
