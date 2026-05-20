@@ -103,88 +103,79 @@ export default function Register() {
       transition={{ duration: 0.5 }}
       className="w-full max-w-md mx-auto"
     >
-      <div className="text-center mb-8">
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-          className="w-16 h-16 bg-linear-to-br from-agri-green to-agri-cyan rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,200,166,0.3)]"
-        >
-          <User className="text-white w-8 h-8" />
-        </motion.div>
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">{t('auth.signup')}</h1>
-        <p className="text-neutral-500 dark:text-neutral-400 text-lg">Join the agricultural revolution</p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className="text-center mb-4">
+        <h1 className="text-2xl md:text-3xl font-extrabold mb-1 tracking-tight">{t('auth.signup')}</h1>
+        <p className="text-neutral-500 dark:text-neutral-400 text-sm">Join the agricultural revolution</p>
+        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
           {['Farmer', 'Driver', 'Owner', 'Buyer'].map((role) => (
-            <span key={role} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-dark-border px-3 py-1 text-xs font-semibold text-neutral-600 dark:text-neutral-300 bg-white/70 dark:bg-dark-card/70 backdrop-blur-sm">
-              <ShieldCheck size={12} className="text-agri-green" />
+            <span key={role} className="inline-flex items-center gap-1 rounded-full border border-neutral-200 dark:border-dark-border px-2 py-0.5 text-[10px] font-semibold text-neutral-600 dark:text-neutral-300 bg-white/70 dark:bg-dark-card/70 backdrop-blur-sm">
+              <ShieldCheck size={10} className="text-agri-green" />
               {role}
             </span>
           ))}
         </div>
       </div>
 
-      <Card className="p-6 md:p-8 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <Card className="p-4 md:p-6 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
               <Alert type="error" message={error} onClose={() => setError('')} />
             </motion.div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Input label="Full Name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" icon={User} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
-            <Input label="Email Address" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" icon={Mail} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
-            <Input label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" icon={Phone} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
-            <div className="relative">
-              <Input label="Password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" icon={Lock} hint="Minimum 8 characters" required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green pr-12" />
-              <button
-                type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                className="absolute right-3 top-10.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input label="Email Address" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" icon={Mail} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+              <Input label="Phone Number" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" icon={Phone} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
             </div>
-            <Input label="Confirm Password" type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" icon={Lock} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 relative">
+              <div className="relative">
+                <Input label="Password" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" icon={Lock} hint="Min 8 chars" required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green pr-10" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute right-2 top-9 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 text-xs"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <Input label="Confirm Password" type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" icon={Lock} required className="bg-neutral-50 dark:bg-[#080c14]/50 focus:ring-agri-green" />
+            </div>
           </div>
 
-          <div className="flex justify-end">
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-sm text-agri-green hover:text-agri-cyan font-semibold transition-colors">
-              {showPassword ? 'Hide' : 'Show'} password
-            </button>
-          </div>
-
-          <div className="pt-2">
+          <div className="pt-1">
             <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
           </div>
 
-          <label className="flex items-start gap-3 cursor-pointer group mt-2">
+          <label className="flex items-start gap-2 cursor-pointer group mt-1">
             <input type="checkbox" required className="mt-1 rounded border-neutral-300 text-agri-green focus:ring-agri-green transition-colors" />
-            <span className="text-sm text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-800 dark:group-hover:text-neutral-200 transition-colors">
-              I agree to the Terms of Service and Privacy Policy
+            <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-800 dark:group-hover:text-neutral-200 transition-colors">
+              I agree to the Terms and Privacy Policy
             </span>
           </label>
 
           <Button 
             type="submit" 
             variant="primary" 
-            size="lg" 
+            size="md" 
             fullWidth 
-            className="mt-4 bg-linear-to-r from-agri-green to-agri-cyan border-0 shadow-[0_0_20px_rgba(16,200,166,0.3)] hover:shadow-[0_0_30px_rgba(16,200,166,0.5)] text-lg h-12"
+            className="mt-2 bg-linear-to-r from-agri-green to-agri-cyan border-0 shadow-[0_0_20px_rgba(16,200,166,0.3)] hover:shadow-[0_0_30px_rgba(16,200,166,0.5)] text-base h-10"
             loading={loading} 
             disabled={!turnstileVerified}
           >
             Create Account
           </Button>
 
-          <div className="relative py-4">
+          <div className="relative py-2">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-neutral-200 dark:border-dark-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="px-4 text-xs font-semibold uppercase text-neutral-500 bg-white dark:bg-dark-card tracking-wider">
+              <span className="px-3 text-[10px] font-semibold uppercase text-neutral-500 bg-white dark:bg-dark-card tracking-wider">
                 Or continue with
               </span>
             </div>
@@ -193,23 +184,20 @@ export default function Register() {
           <GoogleAuthButton />
         </form>
 
-        <div className="mt-6 rounded-2xl border border-neutral-200 dark:border-dark-border bg-linear-to-r from-agri-green/10 via-agri-cyan/10 to-agri-blue/10 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold mb-2">
-            <Sparkles size={14} className="text-agri-green" />
-            What you get
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3 text-xs text-neutral-600 dark:text-neutral-300">
-            <div>Private booking threads for farmers and drivers</div>
-            <div>Route map, payments, and AI guidance in one place</div>
-          </div>
+        <div className="mt-4 text-center space-y-1 text-xs">
+          <p className="text-neutral-500">
+            Forgot password?{' '}
+            <Link to="/forgot-password" className="font-bold text-agri-green hover:text-agri-cyan transition-colors">
+              Reset here
+            </Link>
+          </p>
+          <p className="text-neutral-500">
+            Already have an account?{' '}
+            <Link to="/login" className="font-bold text-agri-green hover:text-agri-cyan transition-colors">
+              Sign in
+            </Link>
+          </p>
         </div>
-
-        <p className="text-center mt-8 text-neutral-600 dark:text-neutral-400">
-          Already have an account?{' '}
-          <Link to="/login" className="font-bold text-agri-green hover:text-agri-cyan transition-colors">
-            Sign in
-          </Link>
-        </p>
       </Card>
     </motion.div>
   )

@@ -20,10 +20,22 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'role' => 'farmer',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+                'role' => 'farmer',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'admin@agripool.com'],
+            [
+                'name' => 'Admin User',
+                'password' => bcrypt('adminpassword'),
+                'role' => 'admin',
+            ]
+        );
     }
 }

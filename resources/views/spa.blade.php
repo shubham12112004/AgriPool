@@ -29,6 +29,43 @@
         });</script>
     @endif
     <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,pa,bn,te,mr,ta,ur,gu,kn,ml,or,en'
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script type="text/javascript">
+        // Actively snipe the Google Translate banner when it tries to inject itself
+        setInterval(function() {
+            var banners = document.querySelectorAll('.goog-te-banner-frame, .VIpgJd-ZVi9od-aZ2wEe-wOHMyf, iframe.skiptranslate');
+            banners.forEach(function(banner) {
+                if (banner.style.display !== 'none') {
+                    banner.style.display = 'none';
+                }
+            });
+            if (document.body && document.body.style.top !== '0px') {
+                document.body.style.top = '0px';
+                document.body.style.position = 'static';
+            }
+            if (document.documentElement && document.documentElement.style.top !== '0px') {
+                document.documentElement.style.top = '0px';
+            }
+        }, 50); // Run frequently to prevent flickering
+    </script>
+    <style>
+        html { top: 0 !important; }
+        body { top: 0px !important; position: static !important; }
+        .goog-te-banner-frame { display: none !important; }
+        .goog-te-banner-frame.skiptranslate { display: none !important; }
+        #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        body > .skiptranslate { display: none !important; }
+        iframe.skiptranslate { display: none !important; }
+    </style>
 </head>
 <body class="antialiased">
     <div id="root"></div>

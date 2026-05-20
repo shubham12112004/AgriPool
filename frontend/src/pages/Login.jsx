@@ -92,36 +92,28 @@ export default function Login() {
       transition={{ duration: 0.5 }}
       className="w-full max-w-md mx-auto"
     >
-      <div className="text-center mb-8">
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-          className="w-16 h-16 bg-linear-to-br from-agri-blue to-agri-cyan rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(43,95,191,0.3)]"
-        >
-          <Lock className="text-white w-8 h-8" />
-        </motion.div>
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">{t('auth.signin')}</h1>
-        <p className="text-neutral-500 dark:text-neutral-400 text-lg">Welcome back to AgriPool</p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className="text-center mb-4">
+        <h1 className="text-2xl md:text-3xl font-extrabold mb-1 tracking-tight">{t('auth.signin')}</h1>
+        <p className="text-neutral-500 dark:text-neutral-400 text-sm">Welcome back to AgriPool</p>
+        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
           {['Secure access', 'Realtime chat', 'Role dashboards'].map((item) => (
-            <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-dark-border px-3 py-1 text-xs font-semibold text-neutral-600 dark:text-neutral-300 bg-white/70 dark:bg-dark-card/70 backdrop-blur-sm">
-              <ShieldCheck size={12} className="text-agri-green" />
+            <span key={item} className="inline-flex items-center gap-1 rounded-full border border-neutral-200 dark:border-dark-border px-2 py-0.5 text-[10px] font-semibold text-neutral-600 dark:text-neutral-300 bg-white/70 dark:bg-dark-card/70 backdrop-blur-sm">
+              <ShieldCheck size={10} className="text-agri-green" />
               {item}
             </span>
           ))}
         </div>
       </div>
 
-      <Card className="p-6 md:p-8 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <Card className="p-4 md:p-6 shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
               <Alert type="error" message={error} onClose={() => setError('')} />
             </motion.div>
           )}
           
-          <div className="space-y-5">
+          <div className="space-y-3">
             <Input
               label={t('auth.email')}
               type="email"
@@ -149,52 +141,54 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
-                  className="absolute right-3 top-10.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200"
+                  className="absolute right-3 top-10 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 text-xs"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <div className="text-right pt-1">
-                <Link to="/forgot-password" className="text-sm text-agri-blue hover:text-agri-cyan transition-colors font-semibold">
+              <div className="text-right pt-0.5">
+                <Link to="/forgot-password" className="text-xs text-agri-blue hover:text-agri-cyan transition-colors font-semibold">
                   {t('auth.forgotPassword')}
                 </Link>
               </div>
             </div>
           </div>
 
-          <label className="flex items-center gap-3 text-sm text-neutral-600 dark:text-neutral-400 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
-              className="rounded border-neutral-300 text-agri-blue focus:ring-agri-blue"
-            />
-            Remember me on this device
-          </label>
+          <div className="flex items-center justify-between text-xs">
+            <label className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
+                className="rounded border-neutral-300 text-agri-blue focus:ring-agri-blue"
+              />
+              Remember me
+            </label>
+          </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <TurnstileWidget onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
           </div>
 
           <Button 
             type="submit" 
             variant="primary" 
-            size="lg" 
+            size="md" 
             fullWidth 
             loading={loading} 
             disabled={!turnstileVerified && !isDevHost}
-            className="bg-linear-to-r from-agri-blue to-agri-cyan border-0 shadow-[0_0_20px_rgba(43,95,191,0.3)] hover:shadow-[0_0_30px_rgba(24,194,255,0.4)] text-lg h-12"
+            className="bg-linear-to-r from-agri-blue to-agri-cyan border-0 shadow-[0_0_20px_rgba(43,95,191,0.3)] hover:shadow-[0_0_30px_rgba(24,194,255,0.4)] text-base h-10"
           >
             Sign In
           </Button>
 
-          <div className="relative py-4">
+          <div className="relative py-2">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-neutral-200 dark:border-dark-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="px-4 text-xs font-semibold uppercase text-neutral-500 bg-white dark:bg-dark-card tracking-wider">
+              <span className="px-3 text-[10px] font-semibold uppercase text-neutral-500 bg-white dark:bg-dark-card tracking-wider">
                 Or continue with
               </span>
             </div>
@@ -202,23 +196,8 @@ export default function Login() {
           
           <GoogleAuthButton />
         </form>
-
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          {[
-            { title: 'Farm flow', text: 'Create a booking, chat with drivers, and track routes.' },
-            { title: 'Fast access', text: 'Pick up where you left off across devices.' },
-          ].map((item) => (
-            <div key={item.title} className="rounded-2xl border border-neutral-200 dark:border-dark-border bg-neutral-50/70 dark:bg-dark-bg/50 p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold mb-1">
-                <Sparkles size={14} className="text-agri-green" />
-                {item.title}
-              </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-5">{item.text}</p>
-            </div>
-          ))}
-        </div>
         
-        <p className="text-center mt-8 text-neutral-500">
+        <p className="text-center mt-6 text-xs text-neutral-500">
           Don&apos;t have an account?{' '}
           <Link to="/register" className="font-bold text-agri-blue hover:text-agri-cyan transition-colors">
             {t('auth.signup')}

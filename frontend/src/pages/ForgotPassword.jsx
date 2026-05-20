@@ -5,7 +5,7 @@ import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useLanguage } from '../hooks/useLanguage'
 import { useTheme } from '../hooks/useTheme'
-import { Button, Input, Card, Alert } from '../components/ui'
+import { Button, Input, Card, Alert, AgriPoolLogo } from '../components/ui'
 import { authService } from '../services'
 
 export default function ForgotPassword() {
@@ -55,9 +55,7 @@ export default function ForgotPassword() {
               isDark ? 'text-primary-400' : 'text-primary-600'
             }`}
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold">
-              A
-            </div>
+            <AgriPoolLogo className="w-8 h-8" iconSizeMultiplier={0.8} />
             AgriPool
           </Link>
 

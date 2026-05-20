@@ -36,7 +36,6 @@ export const dashboardNavByRole = {
     { label: 'nav.equipment', path: '/equipment', icon: icon(Tractor) },
     { label: 'nav.payments', path: '/payments/history', icon: icon(CreditCard) },
     { label: 'nav.saved', path: '/saved', icon: icon(Heart) },
-    { label: 'nav.settings', path: '/settings', icon: icon(Settings) },
   ],
   [ROLES.DRIVER]: [
     { label: 'nav.overview', path: '/dashboard/driver', icon: icon(LayoutDashboard) },
@@ -45,14 +44,12 @@ export const dashboardNavByRole = {
     { label: 'nav.map', path: '/map', icon: icon(Map) },
     { label: 'nav.vehicle', path: '/settings?tab=vehicle', icon: icon(Truck) },
     { label: 'nav.earnings', path: '/payments/history', icon: icon(CreditCard) },
-    { label: 'nav.settings', path: '/settings', icon: icon(Settings) },
   ],
   [ROLES.EQUIPMENT_OWNER]: [
     { label: 'nav.overview', path: '/dashboard/equipment-owner', icon: icon(LayoutDashboard) },
     { label: 'nav.myEquipment', path: '/equipment/manage', icon: icon(Tractor) },
     { label: 'nav.rentals', path: '/bookings', icon: icon(Calendar) },
     { label: 'nav.earnings', path: '/payments/history', icon: icon(BarChart3) },
-    { label: 'nav.settings', path: '/settings', icon: icon(Settings) },
   ],
   [ROLES.BUYER]: [
     { label: 'nav.overview', path: '/dashboard/buyer', icon: icon(LayoutDashboard) },
@@ -60,7 +57,6 @@ export const dashboardNavByRole = {
     { label: 'nav.orders', path: '/bookings', icon: icon(Package) },
     { label: 'nav.saved', path: '/saved', icon: icon(Heart) },
     { label: 'nav.payments', path: '/payments/history', icon: icon(CreditCard) },
-    { label: 'nav.settings', path: '/settings', icon: icon(Settings) },
   ],
   [ROLES.ADMIN]: [
     { label: 'nav.overview', path: '/dashboard/admin', icon: icon(LayoutDashboard) },
@@ -69,7 +65,6 @@ export const dashboardNavByRole = {
     { label: 'nav.moderation', path: '/admin/moderation', icon: icon(Tractor) },
     { label: 'nav.analytics', path: '/admin/analytics', icon: icon(BarChart3) },
     { label: 'nav.notifications', path: '/admin/notifications', icon: icon(Bell) },
-    { label: 'nav.settings', path: '/settings', icon: icon(Settings) },
   ],
 }
 

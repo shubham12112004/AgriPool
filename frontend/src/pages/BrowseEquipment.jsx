@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTheme } from '../hooks/useTheme'
 import { Button, Card, Input, Select, Badge } from '../components/ui'
-import { Search, MapPin, Star, Heart, MapPinIcon, Clock, DollarSign, ChevronRight } from 'lucide-react'
+import { Search, MapPin, Star, Heart, MapPinIcon, Clock, DollarSign, ChevronRight, ArrowLeft } from 'lucide-react'
 
 export default function BrowseEquipment() {
   const { isDark } = useTheme()
@@ -21,7 +22,7 @@ export default function BrowseEquipment() {
       price: '₹500/day',
       rating: 4.8,
       reviews: 156,
-      image: '🚜',
+      image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=600&q=80',
       distance: '2.5 km',
       owner: 'Rajesh Kumar',
       availability: 'Available',
@@ -34,9 +35,9 @@ export default function BrowseEquipment() {
       price: '₹1,200/day',
       rating: 4.6,
       reviews: 89,
-      image: '🌾',
+      image: 'https://images.unsplash.com/photo-1554769945-af468c934022?auto=format&fit=crop&w=600&q=80',
       distance: '5.2 km',
-      owner: 'Singh Equipment',
+      owner: 'Gurpreet Singh',
       availability: 'Available',
     },
     {
@@ -47,9 +48,9 @@ export default function BrowseEquipment() {
       price: '₹300/day',
       rating: 4.9,
       reviews: 234,
-      image: '⚙️',
+      image: 'https://images.pexels.com/photos/2165688/pexels-photo-2165688.jpeg?auto=compress&cs=tinysrgb&w=800',
       distance: '1.8 km',
-      owner: 'Farm Solutions',
+      owner: 'Amit Sharma',
       availability: 'Available',
     },
     {
@@ -60,9 +61,9 @@ export default function BrowseEquipment() {
       price: '₹200/day',
       rating: 4.7,
       reviews: 145,
-      image: '💧',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/e/ee/Case_IH_tractor_with_Hardi_field_sprayer%2C_Lolland.jpg',
       distance: '3.1 km',
-      owner: 'Agri-Tech',
+      owner: 'Baldev Singh',
       availability: 'Available',
     },
     {
@@ -73,9 +74,9 @@ export default function BrowseEquipment() {
       price: '₹400/day',
       rating: 4.5,
       reviews: 78,
-      image: '🎌',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Threshing_Machine_In_Action.jpg',
       distance: '8.5 km',
-      owner: 'Modern Farms',
+      owner: 'Vijay Kumar',
       availability: 'Coming Soon',
     },
     {
@@ -86,9 +87,9 @@ export default function BrowseEquipment() {
       price: '₹350/day',
       rating: 4.8,
       reviews: 112,
-      image: '🌱',
+      image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=600&q=80',
       distance: '6.2 km',
-      owner: 'Quick Harvest',
+      owner: 'Jaspreet Singh',
       availability: 'Available',
     },
   ]
@@ -122,6 +123,13 @@ export default function BrowseEquipment() {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-12">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 mb-4 text-sm font-semibold transition-all duration-200 text-agri-blue hover:text-agri-cyan hover:translate-x-[-4px]"
+          >
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </Link>
           <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
             Equipment Marketplace
           </h1>
@@ -178,99 +186,109 @@ export default function BrowseEquipment() {
         >
           {equipment.map((item) => (
             <motion.div key={item.id} variants={itemVariants}>
-              <Card hoverable className="h-full overflow-hidden flex flex-col">
-                {/* Image Section */}
-                <div className={`relative h-48 flex items-center justify-center text-6xl ${
-                  isDark ? 'bg-dark-border' : 'bg-neutral-100'
-                }`}>
-                  {item.image}
-
-                  {/* Favorite Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => toggleFavorite(item.id)}
-                    className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
-                      favorites.includes(item.id)
-                        ? 'bg-red-500 text-white'
-                        : isDark
-                        ? 'bg-dark-card text-neutral-400'
-                        : 'bg-white text-neutral-600'
-                    }`}
-                  >
-                    <Heart
-                      size={20}
-                      className={favorites.includes(item.id) ? 'fill-current' : ''}
+              <Link to={`/equipment/${item.id}`} className="block h-full">
+                <Card hoverable className="h-full overflow-hidden flex flex-col">
+                  {/* Image Section */}
+                  <div className={`relative h-48 w-full overflow-hidden ${
+                    isDark ? 'bg-dark-border' : 'bg-neutral-100'
+                  }`}>
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
-                  </motion.button>
 
-                  {/* Status Badge */}
-                  <Badge
-                    variant={item.availability === 'Available' ? 'success' : 'warning'}
-                    className="absolute bottom-3 left-3"
-                  >
-                    {item.availability}
-                  </Badge>
-                </div>
-
-                {/* Content Section */}
-                <div className="flex-1 p-6 flex flex-col">
-                  <h3 className={`text-lg font-bold mb-1 ${
-                    isDark ? 'text-neutral-50' : 'text-neutral-900'
-                  }`}>
-                    {item.name}
-                  </h3>
-
-                  <p className={`text-sm mb-4 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                    {item.category}
-                  </p>
-
-                  {/* Rating */}
-                  <div className="flex items-center gap-1 mb-4">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        size={16}
-                        className={i < Math.floor(item.rating) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300 dark:text-dark-border'}
+                    {/* Favorite Button */}
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        toggleFavorite(item.id)
+                      }}
+                      className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
+                        favorites.includes(item.id)
+                          ? 'bg-red-500 text-white'
+                          : isDark
+                          ? 'bg-dark-card text-neutral-400'
+                          : 'bg-white text-neutral-600'
+                      }`}
+                    >
+                      <Heart
+                        size={20}
+                        className={favorites.includes(item.id) ? 'fill-current' : ''}
                       />
-                    ))}
-                    <span className={`text-sm ml-1 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                      {item.rating} ({item.reviews})
-                    </span>
+                    </motion.button>
+
+                    {/* Status Badge */}
+                    <Badge
+                      variant={item.availability === 'Available' ? 'success' : 'warning'}
+                      className="absolute bottom-3 left-3"
+                    >
+                      {item.availability}
+                    </Badge>
                   </div>
 
-                  {/* Location and Distance */}
-                  <div className={`space-y-2 mb-4 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin size={16} />
-                      {item.location}
+                  {/* Content Section */}
+                  <div className="flex-1 p-6 flex flex-col">
+                    <h3 className={`text-lg font-bold mb-1 ${
+                      isDark ? 'text-neutral-50' : 'text-neutral-900'
+                    }`}>
+                      {item.name}
+                    </h3>
+
+                    <p className={`text-sm mb-4 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                      {item.category}
+                    </p>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 mb-4">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          className={i < Math.floor(item.rating) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300 dark:text-dark-border'}
+                        />
+                      ))}
+                      <span className={`text-sm ml-1 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                        {item.rating} ({item.reviews})
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock size={16} />
-                      {item.distance} away
+
+                    {/* Location and Distance */}
+                    <div className={`space-y-2 mb-4 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin size={16} />
+                        {item.location}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock size={16} />
+                        {item.distance} away
+                      </div>
+                    </div>
+
+                    {/* Owner */}
+                    <p className={`text-sm mb-4 pb-4 border-b ${
+                      isDark
+                        ? 'text-neutral-400 border-dark-border'
+                        : 'text-neutral-600 border-neutral-200'
+                    }`}>
+                      By <span className="font-semibold">{item.owner}</span>
+                    </p>
+
+                    {/* Price and Action */}
+                    <div className="mt-auto flex items-center justify-between">
+                      <div className={`text-2xl font-bold ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
+                        {item.price}
+                      </div>
+                      <Button variant="primary" size="sm" className="gap-1">
+                        Book <ChevronRight size={16} />
+                      </Button>
                     </div>
                   </div>
-
-                  {/* Owner */}
-                  <p className={`text-sm mb-4 pb-4 border-b ${
-                    isDark
-                      ? 'text-neutral-400 border-dark-border'
-                      : 'text-neutral-600 border-neutral-200'
-                  }`}>
-                    By <span className="font-semibold">{item.owner}</span>
-                  </p>
-
-                  {/* Price and Action */}
-                  <div className="mt-auto flex items-center justify-between">
-                    <div className={`text-2xl font-bold ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
-                      {item.price}
-                    </div>
-                    <Button variant="primary" size="sm" className="gap-1">
-                      Book <ChevronRight size={16} />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+                </Card>
+              </Link>
             </motion.div>
           ))}
         </motion.div>

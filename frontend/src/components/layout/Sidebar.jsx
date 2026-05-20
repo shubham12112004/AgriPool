@@ -7,6 +7,7 @@ import { useLanguage } from '../../hooks/useLanguage'
 import { useAuthStore } from '../../store/authStore'
 import { getDashboardNav } from '../../config/navigation'
 import { cn } from '../../lib/utils'
+import { AgriPoolLogo } from '../ui'
 
 export default function Sidebar({ open, onClose, collapsed = false, onCollapseChange }) {
   const { isDark, toggleTheme } = useTheme()
@@ -36,9 +37,7 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
         )}
       >
         <div className={cn('flex items-center gap-2.5', collapsed && 'lg:flex-col lg:gap-1')}>
-          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-            A
-          </div>
+          <AgriPoolLogo className="w-9 h-9" />
           {!collapsed && (
             <div className="min-w-0">
               <span className="font-bold text-lg block leading-none">AgriPool</span>
@@ -47,7 +46,6 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
               </span>
             </div>
           )}
-          {collapsed && <span className="font-bold text-lg">A</span>}
         </div>
         <button
           type="button"
@@ -88,53 +86,7 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
       </nav>
 
       <div className={cn('p-3 border-t border-neutral-200/80 dark:border-dark-border space-y-2', collapsed && 'lg:flex lg:flex-col lg:items-center')}>
-        {/* Language Selector */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowLangMenu(!showLangMenu)}
-            className={cn(
-              'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-              isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-100'
-            )}
-            title={collapsed ? 'Language' : ''}
-          >
-            <span className="text-lg shrink-0">🌐</span>
-            {!collapsed && <span>{language.toUpperCase()}</span>}
-            {!collapsed && <span className="text-xs opacity-60 ml-auto">▼</span>}
-          </button>
-          {showLangMenu && !collapsed && (
-            <div className={cn('absolute bottom-full left-3 mb-2 rounded-lg shadow-lg border py-1 z-50 w-40', isDark ? 'bg-dark-card border-dark-border' : 'bg-white border-neutral-200')}>
-              {['en', 'hi', 'pa'].map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => {
-                    changeLanguage(lang)
-                    setShowLangMenu(false)
-                  }}
-                  className={cn('w-full text-left px-4 py-2 text-sm', language === lang ? 'bg-primary-500/15 text-primary-600' : 'hover:bg-neutral-100 dark:hover:bg-dark-border')}
-                >
-                  {lang === 'en' && 'English'} {lang === 'hi' && 'हिन्दी'} {lang === 'pa' && 'ਪੰਜਾਬੀ'}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Theme Toggle */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className={cn(
-            'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-100'
-          )}
-          title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : ''}
-        >
-          {isDark ? <Sun size={18} className="text-yellow-400 shrink-0" /> : <Moon size={18} className="text-slate-700 shrink-0" />}
-          {!collapsed && <span>{isDark ? 'Light mode' : 'Dark mode'}</span>}
-        </button>
 
         {/* Settings Link */}
         <NavLink

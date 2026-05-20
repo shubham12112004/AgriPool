@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
 import { useTheme } from '../hooks/useTheme'
 import { useAuthStore, getDashboardPathForRole } from '../store/authStore'
+import { assistantService } from '../services'
 import { 
   Truck, Tractor, ShoppingBag, Users, ArrowRight, Check, 
   Star, TrendingUp, MapPin, Clock, DollarSign, Shield,
@@ -20,6 +21,31 @@ export default function Home() {
   const { user, role } = useAuthStore()
   const [activeTab, setActiveTab] = useState('Machinery')
   const [isHydrated, setIsHydrated] = useState(false)
+  const [aiInput, setAiInput] = useState('')
+  const [aiMessages, setAiMessages] = useState([
+    { role: 'assistant', body: 'Hello! I can help you with crop choices, disease resolution, weather updates, and much more.' }
+  ])
+  const [aiLoading, setAiLoading] = useState(false)
+
+  const handleAiSubmit = async (e) => {
+    e.preventDefault()
+    const prompt = aiInput.trim()
+    if (!prompt) return
+
+    setAiMessages(prev => [...prev, { role: 'user', body: prompt }])
+    setAiInput('')
+    setAiLoading(true)
+
+    try {
+      const res = await assistantService.chat(prompt, { role })
+      const reply = res?.data?.reply || 'I am here to guide you with any agricultural support questions.'
+      setAiMessages(prev => [...prev, { role: 'assistant', body: reply }])
+    } catch (err) {
+      setAiMessages(prev => [...prev, { role: 'assistant', body: 'Failed to connect. Please try again later.' }])
+    } finally {
+      setAiLoading(false)
+    }
+  }
   
   React.useEffect(() => {
     setIsHydrated(true)
@@ -91,7 +117,7 @@ export default function Home() {
       type: 'Tractor - 47 HP',
       price: '₹ 400',
       unit: '/ hr',
-      image: 'https://images.unsplash.com/photo-1592982537447-6f2334208f34?auto=format&fit=crop&q=80&w=400',
+      image: 'https://images.pexels.com/photos/2933243/pexels-photo-2933243.jpeg?auto=compress&cs=tinysrgb&w=800',
       tag: 'Available',
     },
     {
@@ -99,7 +125,7 @@ export default function Home() {
       type: 'Tractor - 52 HP',
       price: '₹ 450',
       unit: '/ hr',
-      image: 'https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?auto=format&fit=crop&q=80&w=400',
+      image: 'https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg?auto=compress&cs=tinysrgb&w=800',
       tag: 'Available',
     },
     {
@@ -108,7 +134,7 @@ export default function Home() {
       price: '₹ 1,200',
       unit: '/ hr',
       tag: 'Available',
-      image: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&q=80&w=400',
+      image: 'https://images.pexels.com/photos/1595108/pexels-photo-1595108.jpeg?auto=compress&cs=tinysrgb&w=800',
     },
     {
       name: 'Heavy Duty Rotavator',
@@ -116,7 +142,7 @@ export default function Home() {
       price: '₹ 300',
       unit: '/ hr',
       tag: 'Available',
-      image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=400',
+      image: 'https://images.pexels.com/photos/2165688/pexels-photo-2165688.jpeg?auto=compress&cs=tinysrgb&w=800',
     },
   ]
 
@@ -208,22 +234,20 @@ export default function Home() {
               </motion.div>
               
               <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-white">
-                Empowering India's <br className="hidden md:block"/>
-                Farmers with <br className="hidden md:block"/>
-                <span className="text-primary-500">Smart Agriculture</span>
+                {t('home.hero.title')}
               </motion.h1>
               
               <motion.p variants={itemVariants} className="text-base md:text-lg mb-10 max-w-xl text-neutral-300 leading-relaxed">
-                Rent machinery, book transport, consult agronomists, and sell produce—all in one AI-powered ecosystem.
+                {t('home.hero.subtitle')}
               </motion.p>
               
               <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-14">
                 <Link to="/register" className="px-6 py-3 rounded-md font-bold bg-primary-600 text-white hover:bg-primary-500 transition-colors flex items-center justify-center shadow-lg shadow-primary-600/30">
-                  Get Started <ChevronRight size={18} className="ml-1" />
+                  {t('home.hero.cta')} <ChevronRight size={18} className="ml-1" />
                 </Link>
-                <button className="px-6 py-3 rounded-md font-bold border border-white/20 bg-white/5 text-white hover:bg-white/10 transition-colors flex items-center justify-center backdrop-blur-sm">
-                  <Play size={18} className="mr-2" /> Watch Demo
-                </button>
+                <a href="#how-it-works" className="px-6 py-3 rounded-md font-bold border border-white/20 bg-white/5 text-white hover:bg-white/10 transition-colors flex items-center justify-center backdrop-blur-sm">
+                  {t('home.hero.learnMore')}
+                </a>
               </motion.div>
 
               <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
@@ -439,28 +463,28 @@ export default function Home() {
             {[...Array(2)].map((_, i) => (
               <React.Fragment key={i}>
                 <div className="w-64 h-72 shrink-0 rounded-2xl overflow-hidden shadow-2xl relative border border-white/10 hover:-translate-y-2 transition-transform duration-300">
-                  <img src="https://images.unsplash.com/photo-1592982537447-6f2334208f34?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Tractor" />
+                  <img src="https://images.pexels.com/photos/2933243/pexels-photo-2933243.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Tractor" />
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5">
                     <div className="text-primary-400 text-[10px] font-bold tracking-widest mb-1">AVAILABLE NOW</div>
                     <div className="text-white font-semibold">John Deere 8R</div>
                   </div>
                 </div>
                 <div className="w-64 h-72 shrink-0 rounded-2xl overflow-hidden shadow-2xl relative border border-white/10 hover:-translate-y-2 transition-transform duration-300">
-                  <img src="https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Harvester" />
+                  <img src="https://images.pexels.com/photos/1595108/pexels-photo-1595108.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Harvester" />
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5">
                     <div className="text-blue-400 text-[10px] font-bold tracking-widest mb-1">EN ROUTE</div>
                     <div className="text-white font-semibold">Wheat Harvester</div>
                   </div>
                 </div>
                 <div className="w-64 h-72 shrink-0 rounded-2xl overflow-hidden shadow-2xl relative border border-white/10 hover:-translate-y-2 transition-transform duration-300">
-                  <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Farm" />
+                  <img src="https://images.pexels.com/photos/2199293/pexels-photo-2199293.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Truck" />
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5">
                     <div className="text-emerald-400 text-[10px] font-bold tracking-widest mb-1">COMPLETED</div>
                     <div className="text-white font-semibold">Crop Delivery</div>
                   </div>
                 </div>
                 <div className="w-64 h-72 shrink-0 rounded-2xl overflow-hidden shadow-2xl relative border border-white/10 hover:-translate-y-2 transition-transform duration-300">
-                  <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Agriculture" />
+                  <img src="https://images.pexels.com/photos/1105019/pexels-photo-1105019.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Agriculture" />
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-5">
                     <div className="text-amber-400 text-[10px] font-bold tracking-widest mb-1">ADVISORY</div>
                     <div className="text-white font-semibold">Soil Inspection</div>
@@ -473,7 +497,7 @@ export default function Home() {
       </section>
 
       {/* Our Services */}
-      <section className="py-20 px-4">
+      <section id="features" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-12">
             <div>
@@ -575,42 +599,64 @@ export default function Home() {
                </div>
             </div>
             
-            {/* Right Interactive area */}
-            <div className="w-full md:w-2/3 p-10 flex flex-col justify-center relative">
-              <div className="flex items-start gap-4 mb-8">
+            <div className="w-full md:w-2/3 p-10 flex flex-col justify-between relative min-h-[380px]">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center shrink-0 shadow-lg shadow-primary-600/30">
                   <Bot size={24} className="text-white" />
                 </div>
                 <div>
                   <h4 className="text-white font-bold text-xl mb-1">Ask AgriAi</h4>
                   <p className="text-primary-200 text-sm">Your virtual farming assistant.</p>
-                  
-                  <div className="mt-4 bg-[#122e22] rounded-xl p-4 border border-primary-800/50 max-w-md relative">
-                    <div className="absolute -left-2 top-4 border-t-[10px] border-t-transparent border-r-[10px] border-r-[#122e22] border-b-[10px] border-b-transparent"></div>
-                    <p className="text-sm text-primary-100 leading-relaxed">
-                      Hello! I can help you with crop choices, disease resolution, weather updates, and much more.
-                    </p>
-                  </div>
                 </div>
               </div>
-              
-              <div className="relative max-w-lg mt-auto">
+
+              {/* Messages Container */}
+              <div className="flex-1 overflow-y-auto max-h-[220px] mb-4 space-y-3 pr-2 scrollbar-thin">
+                {aiMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`rounded-xl p-3 max-w-[85%] text-sm ${
+                      msg.role === 'user' 
+                        ? 'bg-primary-600 text-white rounded-tr-none' 
+                        : 'bg-[#122e22] text-primary-100 border border-primary-800/50 rounded-tl-none'
+                    }`}>
+                      {msg.body}
+                    </div>
+                  </div>
+                ))}
+                {aiLoading && (
+                  <div className="flex justify-start">
+                    <div className="rounded-xl p-3 bg-[#122e22] text-primary-100/60 text-sm border border-primary-800/50 rounded-tl-none animate-pulse">
+                      AgriAi is thinking...
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Form */}
+              <form onSubmit={handleAiSubmit} className="relative max-w-lg">
                 <input 
                   type="text" 
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
                   placeholder="Ask anything about farming..." 
-                  className="w-full bg-[#0a1913] border border-primary-900/50 rounded-xl py-4 pl-4 pr-12 text-white placeholder-primary-700/50 focus:outline-none focus:border-primary-500 transition-colors"
+                  disabled={aiLoading}
+                  className="w-full bg-[#0a1913] border border-primary-900/50 rounded-xl py-3.5 pl-4 pr-12 text-white placeholder-primary-700/50 focus:outline-none focus:border-primary-500 transition-colors text-sm"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center hover:bg-primary-500 transition-colors">
+                <button 
+                  type="submit" 
+                  disabled={aiLoading || !aiInput.trim()}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center hover:bg-primary-500 transition-colors disabled:opacity-50"
+                >
                   <ArrowRight size={16} className="text-white" />
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works & What Farmers Say */}
-      <section className={`py-20 px-4 border-t ${isDark ? 'border-dark-border bg-dark-bg' : 'border-neutral-200 bg-neutral-50'}`}>
+      <section id="how-it-works" className={`py-20 px-4 border-t ${isDark ? 'border-dark-border bg-dark-bg' : 'border-neutral-200 bg-neutral-50'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16">
             
@@ -669,6 +715,19 @@ export default function Home() {
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className={`py-20 px-4 border-t ${isDark ? 'border-dark-border bg-dark-bg' : 'border-neutral-200 bg-white'}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-2">Frequently Asked Questions</h2>
+            <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>Have questions about AgriPool? We have answers.</p>
+          </div>
+          <div className="mt-8">
+            <Accordion items={faqItems} />
           </div>
         </div>
       </section>

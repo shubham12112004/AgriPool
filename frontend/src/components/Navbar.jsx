@@ -7,15 +7,17 @@ import { useTheme } from '../hooks/useTheme'
 import { useAuthStore } from '../store/authStore'
 import { getDashboardPathForRole } from '../store/authStore'
 import Button from './ui/Button'
+import AgriPoolLogo from './ui/AgriPoolLogo'
 import { publicNavLinks } from '../config/navigation'
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage()
   const { isDark, toggleTheme } = useTheme()
-  const { user, role } = useAuthStore()
+  const { user, role, logout } = useAuthStore()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
@@ -67,9 +69,8 @@ export default function Navbar() {
           >
             <motion.div
               whileHover={{ rotate: 5 }}
-              className="w-9 h-9 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold shadow-glow"
             >
-              A
+              <AgriPoolLogo className="w-9 h-9" />
             </motion.div>
             <span className="bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-300">
               AgriPool
@@ -158,34 +159,101 @@ export default function Navbar() {
               </AnimatePresence>
             </motion.div>
 
-            <div className="hidden sm:flex items-center gap-2">
-              {!isHydrated ? (
+            {isHydrated && user ? (
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 focus:outline-none"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar.startsWith('http') ? user.avatar : `/storage/${user.avatar}`}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-primary-500 shadow-sm"
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    />
+                  ) : null}
+                  <div
+                    style={{ display: user.avatar ? 'none' : 'flex' }}
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-bold flex items-center justify-center border-2 border-primary-500 shadow-sm"
+                  >
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                </motion.button>
+
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                        className={`absolute right-0 mt-2 w-56 rounded-xl shadow-xl overflow-hidden z-50 border ${
+                          isDark
+                            ? 'bg-dark-card border-dark-border text-neutral-200'
+                            : 'bg-white border-neutral-200 text-neutral-700'
+                        }`}
+                      >
+                        <div className={`px-4 py-3 border-b ${isDark ? 'border-dark-border' : 'border-neutral-100'}`}>
+                          <p className="text-sm font-semibold truncate">{user.name}</p>
+                          <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                          <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-primary-500/10 text-primary-500">
+                            {user.role}
+                          </span>
+                        </div>
+                        <div className="py-1">
+                          <Link
+                            to={getDashboardPathForRole(user.role)}
+                            onClick={() => setUserMenuOpen(false)}
+                            className={`flex w-full px-4 py-2 text-sm text-left transition-colors ${
+                              isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-50'
+                            }`}
+                          >
+                            Dashboard
+                          </Link>
+                          <Link
+                            to="/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            className={`flex w-full px-4 py-2 text-sm text-left transition-colors ${
+                              isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-50'
+                            }`}
+                          >
+                            Settings
+                          </Link>
+                        </div>
+                        <div className={`border-t py-1 ${isDark ? 'border-dark-border' : 'border-neutral-100'}`}>
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false)
+                              logout()
+                            }}
+                            className="flex w-full px-4 py-2 text-sm text-left text-red-500 hover:bg-red-500/10 transition-colors font-medium"
+                          >
+                            Logout
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="md">
+                    {t('auth.signin')}
+                  </Button>
+                </Link>
                 <Link to="/register">
                   <Button variant="primary" size="md">
                     {t('auth.signup')}
                   </Button>
                 </Link>
-              ) : user ? (
-                <Link to={dashboardPath}>
-                  <Button variant="primary" size="md">
-                    {t('nav.dashboard')}
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/login">
-                    <Button variant="ghost" size="md">
-                      {t('auth.signin')}
-                    </Button>
-                  </Link>
-                  <Link to="/register">
-                    <Button variant="primary" size="md">
-                      {t('auth.signup')}
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
+              </div>
+            )}
 
             <button
               type="button"
@@ -223,11 +291,38 @@ export default function Navbar() {
                 ))}
                 <motion.div layout className="pt-4 mt-2 border-t border-neutral-200 dark:border-dark-border space-y-2 px-1">
                   {user ? (
-                    <Link to={dashboardPath} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="primary" fullWidth>
-                        {t('nav.dashboard')}
+                    <>
+                      <div className="px-3 py-2 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary-500 text-white font-bold flex items-center justify-center">
+                          {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold truncate">{user.name}</p>
+                          <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      <Link to={getDashboardPathForRole(user.role)} onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" fullWidth className="mt-2">
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Link to="/settings" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" fullWidth>
+                          Settings
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        fullWidth
+                        className="text-red-500 hover:bg-red-500/10"
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          logout()
+                        }}
+                      >
+                        Logout
                       </Button>
-                    </Link>
+                    </>
                   ) : (
                     <>
                       <Link to="/login" onClick={() => setMobileMenuOpen(false)}>

@@ -162,10 +162,16 @@ class BookingController extends Controller
         $delivery = Delivery::findOrFail($id);
         $user = $request->user();
 
-        if ($user->role === 'driver' && $delivery->driver_id === $user->id) {
-            $delivery->driver_id = null;
-            $delivery->status = 'pending';
-            $delivery->save();
+        if ($user->role === 'driver') {
+            if ($delivery->driver_id === $user->id) {
+                $delivery->driver_id = null;
+                $delivery->status = 'pending';
+                $delivery->save();
+            } elseif ($delivery->status === 'pending' && is_null($delivery->driver_id)) {
+                // Unclaimed pending booking, allow driver to decline/reject (handled via local filtering).
+            } else {
+                abort(403);
+            }
         } elseif ($user->role === 'farmer' && $delivery->farmer_id === $user->id) {
             $delivery->status = 'cancelled';
             $delivery->save();
@@ -214,6 +220,111 @@ class BookingController extends Controller
         }
 
         return response()->json(['data' => $markers]);
+    }
+
+    public function updateStatus(Request $request, int $id): JsonResponse
+    {
+        $delivery = Delivery::findOrFail($id);
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['pending', 'assigned', 'in_transit', 'completed', 'cancelled', 'accepted', 'in_progress'])],
+            'vehicle_type' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'registration' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'estimated_days' => ['sometimes', 'nullable', 'integer'],
+            'payment_method' => ['sometimes', 'nullable', 'string', 'max:50'],
+        ]);
+
+        $status = match ($validated['status']) {
+            'accepted' => 'assigned',
+            'in_progress' => 'in_transit',
+            default => $validated['status'],
+        };
+
+        if ($user->role === 'driver' && $delivery->driver_id !== $user->id) {
+            abort(403);
+        }
+
+        $delivery->status = $status;
+
+        if ($status === 'in_transit') {
+            $vehicleType = $request->input('vehicle_type', 'Tractor');
+            $registration = $request->input('registration', 'PB-10-TEMP');
+            $estimatedDays = (int) $request->input('estimated_days', 1);
+            $paymentMethod = $request->input('payment_method', 'Pay on Delivery');
+
+            // Find or create driver's vehicle
+            $vehicle = \App\Models\Vehicle::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'vehicle_type' => $vehicleType,
+                    'registration' => $registration,
+                    'available' => true,
+                ]
+            );
+
+            $delivery->vehicle_id = $vehicle->id;
+
+            // Save details to notes
+            $delivery->notes = "Est. Delivery: {$estimatedDays} days | Payment: {$paymentMethod} | Vehicle: {$registration} ({$vehicleType})";
+
+            // Create active trip
+            \App\Models\ActiveTrip::updateOrCreate(
+                ['delivery_id' => $delivery->id],
+                [
+                    'vehicle_id' => $vehicle->id,
+                    'driver_id' => $user->id,
+                    'started_at' => now(),
+                    'status' => 'active',
+                ]
+            );
+
+            // Create AppNotification for farmer
+            try {
+                \App\Models\AppNotification::create([
+                    'user_id' => $delivery->farmer_id,
+                    'type' => 'trip_started',
+                    'title' => 'Your Trip Has Started!',
+                    'body' => "Your driver has started the trip for " . $delivery->title . ". Estimated delivery: " . $estimatedDays . " days. Vehicle: " . $registration . ".",
+                    'data' => [
+                        'delivery_id' => $delivery->id,
+                        'estimated_days' => $estimatedDays,
+                        'payment_method' => $paymentMethod,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning("Notification creation failed: " . $e->getMessage());
+            }
+
+            // Create system message in chat
+            try {
+                $conversation = $delivery->conversation()->firstOrCreate([
+                    'type' => 'booking',
+                    'subject' => trim(($delivery->title ?: 'Delivery').' chat'),
+                ]);
+
+                $systemMessage = "🚚 Trip started!\n- From: {$delivery->pickup_location}\n- To: {$delivery->dropoff_location}\n- Est. Delivery: {$estimatedDays} days\n- Payment Method: {$paymentMethod}\n- Vehicle Details: {$registration} ({$vehicleType})";
+
+                $conversation->messages()->create([
+                    'user_id' => $user->id,
+                    'body' => $systemMessage,
+                    'type' => 'system',
+                ]);
+
+                $conversation->forceFill(['last_message_at' => now()])->save();
+                
+                // Broadcast message sent
+                try {
+                    event(new \App\Events\ConversationMessageSent($conversation->messages()->latest()->first()));
+                } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning("System chat message creation failed: " . $e->getMessage());
+            }
+        }
+
+        $delivery->save();
+
+        return response()->json(['data' => BookingPresenter::toArray($delivery->fresh(['farmer', 'driver']))]);
     }
 
     private function findAuthorized(Request $request, int $id): Delivery

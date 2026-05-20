@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ConversationController;
@@ -32,6 +33,9 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/turnstile-verify', [AuthController::class, 'verifyTurnstile']);
 Route::post('/auth/oauth/exchange', [AuthController::class, 'exchangeOAuthCode']);
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/assistant/chat', [AssistantController::class, 'chat']);
 
 Route::middleware(['spa.auth'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
@@ -44,9 +48,9 @@ Route::middleware(['spa.auth'])->group(function () {
     Route::get('/bookings/{id}/conversation', [ConversationController::class, 'show']);
     Route::post('/bookings/{id}/accept', [BookingController::class, 'accept']);
     Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
+    Route::put('/bookings/{id}/status', [BookingController::class, 'updateStatus']);
     Route::apiResource('bookings', BookingController::class);
     Route::post('/conversations/{id}/messages', [ConversationController::class, 'store']);
-    Route::post('/assistant/chat', [AssistantController::class, 'chat']);
 
     Route::get('/vehicle', [VehicleController::class, 'show']);
     Route::post('/vehicle', [VehicleController::class, 'store']);
@@ -60,10 +64,21 @@ Route::middleware(['spa.auth'])->group(function () {
     Route::get('/payments/{id}/receipt', [PaymentController::class, 'receipt']);
 
     Route::patch('/user/role', [AuthController::class, 'updateRole']);
+    Route::put('/users/{id}', [AuthController::class, 'updateProfile']);
+    Route::post('/users/{id}/avatar', [AuthController::class, 'uploadAvatar']);
 
     // Analytics routes (admin only)
     Route::get('/analytics/revenue-chart', [AnalyticsController::class, 'revenueChart']);
     Route::get('/analytics/stats', [AnalyticsController::class, 'stats']);
+    Route::get('/admin/dashboard-data', [AnalyticsController::class, 'adminDashboardData']);
+    Route::get('/admin/ai-advice', [AnalyticsController::class, 'adminAiAdvice']);
+
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'read']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::post('/admin/broadcast-notification', [NotificationController::class, 'broadcast']);
 });
 
 Broadcast::routes(['middleware' => ['spa.auth']]);

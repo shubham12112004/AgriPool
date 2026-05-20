@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
 import { useTheme } from '../hooks/useTheme'
 import { Share2, MessageCircle, Globe, Link2, Mail, Phone, MapPin } from 'lucide-react'
+import AgriPoolLogo from './ui/AgriPoolLogo'
 
 export default function Footer() {
   const { t } = useLanguage()
@@ -53,9 +54,7 @@ export default function Footer() {
                 isDark ? 'text-primary-400' : 'text-primary-600'
               }`}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold">
-                A
-              </div>
+              <AgriPoolLogo className="w-8 h-8" iconSizeMultiplier={0.8} />
               AgriPool
             </Link>
             <p className={`mb-6 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
@@ -126,7 +125,7 @@ export default function Footer() {
           {/* Contact Info */}
           <div className="flex flex-col sm:flex-row gap-6 text-sm">
             <a
-              href="mailto:support@agripool.com"
+              href="mailto:raoshubham192@gmail.com"
               className={`flex items-center gap-2 transition-colors ${
                 isDark
                   ? 'text-neutral-400 hover:text-primary-400'
@@ -134,7 +133,7 @@ export default function Footer() {
               }`}
             >
               <Mail size={16} />
-              support@agripool.com
+              raoshubham192@gmail.com
             </a>
             <a
               href="tel:+911234567890"

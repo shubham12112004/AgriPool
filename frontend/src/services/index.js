@@ -85,8 +85,8 @@ export const bookingService = {
   getMapMarkers: () =>
     apiClient.get('/bookings/map-markers'),
   
-  updateStatus: (bookingId, status) => 
-    apiClient.put(`/bookings/${bookingId}/status`, { status }),
+  updateStatus: (bookingId, status, extraData = {}) => 
+    apiClient.put(`/bookings/${bookingId}/status`, { status, ...extraData }),
 }
 
 export const chatService = {
@@ -152,6 +152,12 @@ export const vehicleService = {
 
 export const dashboardService = {
   getStats: () => apiClient.get('/dashboard'),
+}
+
+export const adminService = {
+  getDashboardData: () => apiClient.get('/admin/dashboard-data'),
+  getAiAdvice: () => apiClient.get('/admin/ai-advice'),
+  broadcastNotification: (data) => apiClient.post('/admin/broadcast-notification', data),
 }
 
 export const authProfileService = {

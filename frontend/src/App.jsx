@@ -9,44 +9,45 @@ import OnboardingLayout from './layouts/OnboardingLayout'
 import ProtectedRoute from './components/routing/ProtectedRoute'
 import { Spinner } from './components/ui'
 
-const Home = lazy(() => import('./pages/Home'))
-const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
-const OAuthCallback = lazy(() => import('./pages/auth/OAuthCallback'))
-const RoleSelection = lazy(() => import('./pages/RoleSelection'))
-const FarmerOnboarding = lazy(() => import('./pages/FarmerOnboarding'))
-const DriverOnboarding = lazy(() => import('./pages/onboarding/DriverOnboarding'))
-const EquipmentOwnerOnboarding = lazy(() => import('./pages/onboarding/EquipmentOwnerOnboarding'))
-const BuyerOnboarding = lazy(() => import('./pages/onboarding/BuyerOnboarding'))
-const BrowseEquipment = lazy(() => import('./pages/BrowseEquipment'))
-const EquipmentDetail = lazy(() => import('./pages/EquipmentDetail'))
-const DashboardRouter = lazy(() => import('./pages/dashboard/DashboardRouter'))
-const FarmerDashboard = lazy(() => import('./pages/dashboard/FarmerDashboard'))
-const DriverDashboard = lazy(() => import('./pages/dashboard/DriverDashboard'))
-const EquipmentOwnerDashboard = lazy(() => import('./pages/dashboard/EquipmentOwnerDashboard'))
-const BuyerDashboard = lazy(() => import('./pages/dashboard/BuyerDashboard'))
-const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'))
-const BookingsList = lazy(() => import('./pages/bookings/BookingsList'))
-const BookingDetail = lazy(() => import('./pages/bookings/BookingDetail'))
-const CreateBooking = lazy(() => import('./pages/bookings/CreateBooking'))
-const PaymentCheckout = lazy(() => import('./pages/payments/PaymentCheckout'))
-const PaymentSuccess = lazy(() => import('./pages/payments/PaymentSuccess'))
-const PaymentFailed = lazy(() => import('./pages/payments/PaymentFailed'))
-const PaymentHistory = lazy(() => import('./pages/payments/PaymentHistory'))
-const MapPage = lazy(() => import('./pages/MapPage'))
-const Messages = lazy(() => import('./pages/Messages'))
-const Settings = lazy(() => import('./pages/settings/Settings'))
-const SavedPage = lazy(() => import('./pages/SavedPage'))
-const BrowseProducts = lazy(() => import('./pages/marketplace/BrowseProducts'))
-const ProductDetail = lazy(() => import('./pages/marketplace/ProductDetail'))
-const ManageEquipment = lazy(() => import('./pages/equipment/ManageEquipment'))
-const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
-const AdminVerification = lazy(() => import('./pages/admin/AdminVerification'))
-const AdminModeration = lazy(() => import('./pages/admin/AdminModeration'))
-const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'))
-const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'))
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
+import OAuthCallback from './pages/auth/OAuthCallback'
+import RoleSelection from './pages/RoleSelection'
+import FarmerOnboarding from './pages/FarmerOnboarding'
+import DriverOnboarding from './pages/onboarding/DriverOnboarding'
+import EquipmentOwnerOnboarding from './pages/onboarding/EquipmentOwnerOnboarding'
+import BuyerOnboarding from './pages/onboarding/BuyerOnboarding'
+import BrowseEquipment from './pages/BrowseEquipment'
+import EquipmentDetail from './pages/EquipmentDetail'
+import DashboardRouter from './pages/dashboard/DashboardRouter'
+import FarmerDashboard from './pages/dashboard/FarmerDashboard'
+import DriverDashboard from './pages/dashboard/DriverDashboard'
+import EquipmentOwnerDashboard from './pages/dashboard/EquipmentOwnerDashboard'
+import BuyerDashboard from './pages/dashboard/BuyerDashboard'
+import AdminDashboard from './pages/dashboard/AdminDashboard'
+import BookingsList from './pages/bookings/BookingsList'
+import BookingDetail from './pages/bookings/BookingDetail'
+import CreateBooking from './pages/bookings/CreateBooking'
+import PaymentCheckout from './pages/payments/PaymentCheckout'
+import PaymentSuccess from './pages/payments/PaymentSuccess'
+import PaymentFailed from './pages/payments/PaymentFailed'
+import PaymentHistory from './pages/payments/PaymentHistory'
+import MapPage from './pages/MapPage'
+import Messages from './pages/Messages'
+import Settings from './pages/settings/Settings'
+import SavedPage from './pages/SavedPage'
+import BrowseProducts from './pages/marketplace/BrowseProducts'
+import ProductDetail from './pages/marketplace/ProductDetail'
+import ManageEquipment from './pages/equipment/ManageEquipment'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminVerification from './pages/admin/AdminVerification'
+import AdminModeration from './pages/admin/AdminModeration'
+import AdminAnalytics from './pages/admin/AdminAnalytics'
+import AdminNotifications from './pages/admin/AdminNotifications'
 
 function PageLoader() {
   return (
@@ -64,15 +65,17 @@ export default function App() {
           <Routes>
             <Route element={<PublicLayout />}>
               <Route path="/" element={<Home />} />
-              <Route path="/equipment" element={<BrowseEquipment />} />
-              <Route path="/equipment/:id" element={<EquipmentDetail />} />
               <Route path="/role-selection" element={<RoleSelection />} />
             </Route>
+
+            <Route path="/equipment" element={<BrowseEquipment />} />
+            <Route path="/equipment/:id" element={<EquipmentDetail />} />
 
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/oauth/callback" element={<OAuthCallback />} />
             </Route>

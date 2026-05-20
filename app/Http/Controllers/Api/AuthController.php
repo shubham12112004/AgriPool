@@ -139,6 +139,146 @@ class AuthController extends Controller
         ], 400);
     }
 
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate(['email' => 'required|email']);
+        
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            // Return success even if not found to prevent user enumeration, or return standard validation
+            return response()->json(['message' => 'We have emailed your password reset link!']);
+        }
+
+        // Generate a random plain token
+        $token = \Illuminate\Support\Str::random(60);
+        
+        // Store the plain token in the table so we can look it up without email parameter
+        \Illuminate\Support\Facades\DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            [
+                'token' => $token,
+                'created_at' => now()
+            ]
+        );
+
+        // Send Custom Mailable HTML Email
+        try {
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $token) {
+                $resetUrl = url("/reset-password?token={$token}&email=" . urlencode($user->email));
+                $message->to($user->email)
+                    ->subject('Reset Password Notification')
+                    ->html("
+                        <div style='font-family: sans-serif; padding: 20px; color: #333;'>
+                            <h2>Hello!</h2>
+                            <p>You are receiving this email because we received a password reset request for your account.</p>
+                            <div style='margin: 30px 0;'>
+                                <a href='{$resetUrl}' style='background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Reset Password</a>
+                            </div>
+                            <p>This password reset link will expire in 60 minutes.</p>
+                            <p>If you did not request a password reset, no further action is required.</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;' />
+                            <p style='font-size: 12px; color: #777;'>If you're having trouble clicking the \"Reset Password\" button, copy and paste the URL below into your web browser:<br><a href='{$resetUrl}'>{$resetUrl}</a></p>
+                        </div>
+                    ");
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send reset email to {$user->email}: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'message' => 'We have emailed your password reset link!',
+            'dev_token' => $token // Include in API response for easy manual testing / validation
+        ]);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $record = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$record) {
+            return response()->json([
+                'message' => 'This password reset token is invalid or expired.'
+            ], 400);
+        }
+
+        if (now()->parse($record->created_at)->addMinutes(60)->isPast()) {
+            \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+                ->where('email', $record->email)
+                ->delete();
+            return response()->json([
+                'message' => 'This password reset token has expired.'
+            ], 400);
+        }
+
+        $user = User::where('email', $record->email)->first();
+        if (!$user) {
+            return response()->json([
+                'message' => "We can't find a user with that email address."
+            ], 400);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Clean up the token record
+        \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+            ->where('email', $record->email)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Your password has been reset!'
+        ]);
+    }
+
+    public function updateProfile(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        if ($user->id != $id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $user->update($validated);
+
+        return response()->json(['user' => $this->userPayload($user)]);
+    }
+
+    public function uploadAvatar(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        if ($user->id != $id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'avatar' => ['required', 'image', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
+            $user->save();
+        }
+
+        return response()->json(['user' => $this->userPayload($user)]);
+    }
+
     private function userPayload(User $user): array
     {
         return [
@@ -146,6 +286,8 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role ?? 'farmer',
+            'phone' => $user->phone,
+            'avatar' => $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . $user->avatar)) : null,
         ];
     }
 }

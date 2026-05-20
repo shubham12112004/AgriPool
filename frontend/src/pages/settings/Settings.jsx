@@ -6,11 +6,10 @@ import { useTheme } from '../../hooks/useTheme'
 import { useLanguage } from '../../hooks/useLanguage'
 import PageHeader from '../../components/shared/PageHeader'
 import { Card, Input, Button, Tabs, Select } from '../../components/ui'
-import { vehicleService } from '../../services'
+import { vehicleService, authService, userService } from '../../services'
 import { Moon, Sun, Globe, Bell, Lock, LogOut } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useNavigate } from 'react-router-dom'
-import { authService } from '../../services'
 
 function cn(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -21,7 +20,11 @@ export default function Settings() {
   const { language, setLanguage } = useLanguage()
   const [searchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') === 'vehicle' ? 3 : 0
+  const user = useAuthStore((s) => s.user)
+  const setAuth = useAuthStore((s) => s.setAuth)
   const [profile, setProfile] = useState({ name: '', email: '', phone: '' })
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [avatarLoading, setAvatarLoading] = useState(false)
   const [vehicle, setVehicle] = useState({
     vehicle_type: '',
     registration: '',
@@ -31,6 +34,16 @@ export default function Settings() {
   const [vehicleLoading, setVehicleLoading] = useState(false)
 
   useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      })
+    }
+  }, [user])
+
+  useEffect(() => {
     vehicleService
       .getVehicle()
       .then((res) => {
@@ -38,6 +51,59 @@ export default function Settings() {
       })
       .catch(() => {})
   }, [])
+
+  const saveProfile = async (e) => {
+    e.preventDefault()
+    if (!user) return
+    setProfileLoading(true)
+    try {
+      const res = await userService.updateProfile(user.id, {
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+      })
+      if (res.data && res.data.user) {
+        setAuth({
+          user: res.data.user,
+          role: res.data.user.role,
+        })
+        toast.success('Profile updated successfully')
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update profile')
+    } finally {
+      setProfileLoading(false)
+    }
+  }
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size must be less than 2MB')
+      return
+    }
+
+    setAvatarLoading(true)
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    try {
+      const res = await userService.uploadAvatar(user.id, formData)
+      if (res.data && res.data.user) {
+        setAuth({
+          user: res.data.user,
+          role: res.data.user.role,
+        })
+        toast.success('Profile picture updated!')
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload profile picture')
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
 
   const saveVehicle = async (e) => {
     e.preventDefault()
@@ -63,11 +129,54 @@ export default function Settings() {
           <div className="space-y-6">
             <Card className="p-6">
               <h3 className="text-lg font-bold mb-6">Account Information</h3>
-              <div className="space-y-4 max-w-lg">
-                <Input label="Name" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
-                <Input label="Email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
-                <Input label="Phone" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
-                <Button variant="primary">Save profile</Button>
+              <div className="flex flex-col sm:flex-row gap-8 items-start">
+                <div className="relative group w-24 h-24 rounded-full overflow-hidden border border-neutral-300 dark:border-dark-border bg-neutral-100 dark:bg-dark-bg flex items-center justify-center flex-shrink-0">
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-4xl text-neutral-400 font-bold">
+                      {user?.name ? user.name[0].toUpperCase() : 'U'}
+                    </div>
+                  )}
+                  <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-[10px] font-semibold text-center p-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                      disabled={avatarLoading}
+                    />
+                    {avatarLoading ? 'Uploading...' : 'Change Photo'}
+                  </label>
+                </div>
+
+                <form onSubmit={saveProfile} className="space-y-4 flex-1 max-w-lg w-full">
+                  <Input
+                    label="Name"
+                    value={profile.name}
+                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                    required
+                  />
+                  <Input
+                    label="Email"
+                    type="email"
+                    value={profile.email}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    required
+                  />
+                  <Input
+                    label="Phone"
+                    value={profile.phone}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  />
+                  <Button type="submit" variant="primary" loading={profileLoading}>
+                    Save profile
+                  </Button>
+                </form>
               </div>
             </Card>
           </div>

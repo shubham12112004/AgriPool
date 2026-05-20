@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import {
   ArrowRight,
   Bot,
@@ -94,6 +95,7 @@ export default function Messages() {
   const [loadingBookings, setLoadingBookings] = useState(true)
   const [loadingConversation, setLoadingConversation] = useState(false)
   const [sending, setSending] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
   const [messageBody, setMessageBody] = useState('')
   const [error, setError] = useState('')
 
@@ -136,8 +138,11 @@ export default function Messages() {
 
         if (!active) return
 
-        setBookings(data)
-        setSelectedBookingId((current) => current || data[0]?.id || null)
+        const rejected = JSON.parse(localStorage.getItem('agripool_rejected_bookings') || '[]')
+        const filtered = data.filter((b) => !rejected.includes(b.id))
+
+        setBookings(filtered)
+        setSelectedBookingId((current) => current || filtered[0]?.id || null)
       } catch (requestError) {
         if (!active) return
         setError(requestError?.message || 'Unable to load booking threads.')
@@ -188,6 +193,66 @@ export default function Messages() {
 
     return () => {
       active = false
+    }
+  }, [selectedBookingId])
+
+  // Background polling for booking list to capture status changes (e.g. driver accepts)
+  useEffect(() => {
+    let active = true
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await bookingService.getBookings()
+        const data = response?.data || []
+
+        if (!active) return
+
+        const rejected = JSON.parse(localStorage.getItem('agripool_rejected_bookings') || '[]')
+        const filtered = data.filter((b) => !rejected.includes(b.id))
+
+        setBookings(filtered)
+      } catch (e) {
+        console.error('Bookings polling error:', e)
+      }
+    }, 4000)
+
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
+  }, [])
+
+  // Background polling for messages to support fallback live chat if Reverb/WebSockets are down
+  useEffect(() => {
+    if (!selectedBookingId) return undefined
+
+    let active = true
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await chatService.getBookingConversation(selectedBookingId)
+        const payload = response?.data || {}
+
+        if (!active) return
+
+        if (payload.messages) {
+          setMessages((current) => {
+            const currentIds = new Set(current.map(m => m.id))
+            const newMessages = payload.messages.filter(m => !currentIds.has(m.id))
+            if (newMessages.length > 0) {
+              return [...current, ...newMessages]
+            }
+            return current
+          })
+        }
+      } catch (e) {
+        console.error('Messages polling error:', e)
+      }
+    }, 3000)
+
+    return () => {
+      active = false
+      clearInterval(interval)
     }
   }, [selectedBookingId])
 
@@ -262,6 +327,61 @@ export default function Messages() {
       setError(requestError?.message || 'Message could not be sent.')
     } finally {
       setSending(false)
+    }
+  }
+
+  async function handleAcceptBooking(bookingId) {
+    setActionLoading(true)
+    setError('')
+    try {
+      const response = await bookingService.acceptBooking(bookingId)
+      const updatedBooking = response?.data
+      if (updatedBooking) {
+        setBookings((current) =>
+          current.map((b) => (b.id === bookingId ? updatedBooking : b))
+        )
+        // Refresh conversation details
+        const convResponse = await chatService.getBookingConversation(bookingId)
+        const payload = convResponse?.data || {}
+        setConversation(payload.conversation || null)
+        setMessages(payload.messages || [])
+        toast.success('Trip accepted successfully!')
+      }
+    } catch (requestError) {
+      setError(requestError?.message || 'Failed to accept booking.')
+      toast.error('Failed to accept trip.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleRejectBooking(bookingId) {
+    setActionLoading(true)
+    setError('')
+    try {
+      await bookingService.rejectBooking(bookingId)
+      
+      // Save to local storage so it persists across page reloads/polls
+      const rejected = JSON.parse(localStorage.getItem('agripool_rejected_bookings') || '[]')
+      if (!rejected.includes(bookingId)) {
+        rejected.push(bookingId)
+        localStorage.setItem('agripool_rejected_bookings', JSON.stringify(rejected))
+      }
+
+      setBookings((current) => {
+        const remaining = current.filter((b) => b.id !== bookingId)
+        if (selectedBookingId === bookingId) {
+          setSelectedBookingId(remaining[0]?.id || null)
+        }
+        return remaining
+      })
+
+      toast.success('Trip rejected/released successfully!')
+    } catch (requestError) {
+      setError(requestError?.message || 'Failed to reject booking.')
+      toast.error('Failed to reject trip.')
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -423,12 +543,50 @@ export default function Messages() {
                 <Spinner size="lg" />
               </div>
             ) : conversation ? (
-              <>
-                {messages.map((message) => (
-                  <MessageBubble key={message.id} message={message} isMine={message.user_id === user?.id} />
-                ))}
-                <div ref={chatScrollRef} />
-              </>
+              currentBooking?.status === 'pending' ? (
+                role === 'driver' ? (
+                  <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center p-6 bg-amber-50/50 dark:bg-amber-950/10 rounded-2xl border border-dashed border-amber-200 dark:border-amber-900/30">
+                    <Truck size={48} className="text-amber-500 mb-4 animate-bounce" />
+                    <h4 className="text-lg font-bold mb-2">New Booking Request</h4>
+                    <p className="max-w-md text-sm text-neutral-600 dark:text-neutral-300 mb-6 leading-relaxed">
+                      You have a pending booking request from <strong>{currentBooking.farmer_name || 'Farmer'}</strong>. Accept this request to claim the delivery and unlock live chat.
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="primary"
+                        loading={actionLoading}
+                        onClick={() => handleAcceptBooking(currentBooking.id)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all"
+                      >
+                        Accept Request
+                      </Button>
+                      <Button
+                        variant="outline"
+                        loading={actionLoading}
+                        onClick={() => handleRejectBooking(currentBooking.id)}
+                        className="border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 font-bold px-6 py-2.5 rounded-xl transition-all"
+                      >
+                        Reject Request
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center p-6 bg-slate-50 dark:bg-dark-bg/55 rounded-2xl border border-dashed border-neutral-200 dark:border-dark-border">
+                    <Spinner size="lg" className="text-primary-500 mb-4" />
+                    <h4 className="text-lg font-bold mb-2">Awaiting Driver Acceptance</h4>
+                    <p className="max-w-md text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                      Your booking request has been posted to drivers. Once a driver accepts your trip, the live chat channel will automatically open.
+                    </p>
+                  </div>
+                )
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <MessageBubble key={message.id} message={message} isMine={message.user_id === user?.id} />
+                  ))}
+                  <div ref={chatScrollRef} />
+                </>
+              )
             ) : (
               <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center text-neutral-500 dark:text-neutral-400">
                 <Sparkles size={36} className="mb-3" />
@@ -445,12 +603,25 @@ export default function Messages() {
               <Textarea
                 value={messageBody}
                 onChange={(event) => setMessageBody(event.target.value)}
-                placeholder={conversation ? 'Write a message to the farmer or driver...' : 'Select a booking first'}
+                placeholder={
+                  !conversation
+                    ? 'Select a booking first'
+                    : currentBooking?.status === 'pending'
+                    ? role === 'driver'
+                      ? 'Accept this request to unlock chat...'
+                      : 'Waiting for driver to accept...'
+                    : 'Write a message to the farmer or driver...'
+                }
                 rows={3}
-                disabled={!conversation || sending}
+                disabled={!conversation || sending || currentBooking?.status === 'pending'}
                 className="resize-none"
               />
-              <Button type="submit" loading={sending} disabled={!conversation || !messageBody.trim()} icon={Send}>
+              <Button
+                type="submit"
+                loading={sending}
+                disabled={!conversation || !messageBody.trim() || currentBooking?.status === 'pending'}
+                icon={Send}
+              >
                 Send
               </Button>
             </div>

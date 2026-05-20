@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Map, ExternalLink } from 'lucide-react'
 import PageHeader from '../components/shared/PageHeader'
 import AgriMap from '../components/map/AgriMap'
-import { Card } from '../components/ui'
+import { Card, Button } from '../components/ui'
 import { bookingService } from '../services'
 
 export default function MapPage() {
@@ -30,6 +31,19 @@ export default function MapPage() {
       <Card className="p-2 overflow-hidden">
         <AgriMap height="min(70vh, 560px)" markers={markers} zoom={12} />
       </Card>
+      
+      <div className="flex justify-center pt-2">
+        <Button
+          onClick={() => window.open('https://www.google.com/maps/dir/?api=1', '_blank', 'noopener,noreferrer')}
+          variant="primary"
+          className="shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+        >
+          <Map size={18} />
+          View in Google Maps
+          <ExternalLink size={16} className="opacity-70" />
+        </Button>
+      </div>
     </motion.div>
   )
 }
+

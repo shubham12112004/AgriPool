@@ -57,7 +57,11 @@ class ConversationController extends Controller
         ])->save();
 
         $message->load('user');
-        event(new ConversationMessageSent($message));
+        try {
+            event(new ConversationMessageSent($message));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Broadcasting message event failed: " . $e->getMessage());
+        }
 
         return response()->json([
             'data' => $this->serializeMessage($message),

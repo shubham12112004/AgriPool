@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class SiteAssistantService
 {
@@ -11,6 +13,74 @@ class SiteAssistantService
         $message = trim($message);
         $normalized = Str::lower($message);
         $role = $context['role'] ?? null;
+
+        $apiKey = config('services.gemini.key');
+        
+        if ($apiKey) {
+            try {
+                $systemInstruction = "You are AgriAI, a virtual farming assistant inside the AgriPool platform. " .
+                    "The user's role on the platform is: " . ($role ?? 'guest') . ". " .
+                    "Provide a direct, concise, and helpful response (maximum 2-3 sentences) related to farming, agricultural advice, or platform usage. " .
+                    "Do not use markdown formatting like bold/asterisks; return plain text.";
+
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $apiKey, [
+                    'contents' => [
+                        [
+                            'role' => 'user',
+                            'parts' => [
+                                ['text' => $systemInstruction . "\n\nUser Question: " . $message]
+                            ]
+                        ]
+                    ]
+                ]);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    $reply = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                    if ($reply) {
+                        $topic = 'overview';
+                        
+                        $topics = [
+                            'booking' => ['booking', 'bookings', 'request', 'trip', 'delivery', 'schedule'],
+                            'chat' => ['chat', 'message', 'messages', 'conversation', 'talk'],
+                            'map' => ['map', 'route', 'location', 'tracking', 'marker', 'gps'],
+                            'payments' => ['payment', 'payments', 'pay', 'fee', 'invoice', 'receipt', 'razorpay'],
+                            'equipment' => ['equipment', 'tractor', 'machine', 'harvester', 'rental', 'rent'],
+                            'support' => ['support', 'help', 'assist', 'consult', 'consultation', 'guide'],
+                        ];
+
+                        foreach ($topics as $key => $keywords) {
+                            foreach ($keywords as $keyword) {
+                                if (Str::contains($normalized, $keyword)) {
+                                    $topic = $key;
+                                    break 2;
+                                }
+                            }
+                        }
+
+                        $allSuggestions = [
+                            'booking' => ['How do I create a booking?', 'How do I accept a request?', 'Where can I track booking status?'],
+                            'chat' => ['How do I open a booking chat?', 'Can I send photos?', 'Who can read my messages?'],
+                            'map' => ['How do I find nearby drivers?', 'Why does the map not fully load?', 'Can I use the map on mobile?'],
+                            'payments' => ['Where is my payment history?', 'How do I verify a payment?', 'How do refunds work?'],
+                            'equipment' => ['How do I list equipment?', 'How do I rent machinery?', 'How do I update availability?'],
+                            'support' => ['Explain how AgriPool works', 'How should a farmer start?', 'What should a driver do first?'],
+                            'overview' => ['How does AgriPool work?', 'I need help with bookings', 'Show me the driver workflow']
+                        ];
+                        
+                        $suggestions = $allSuggestions[$topic] ?? $allSuggestions['overview'];
+
+                        return $this->buildResponse($topic, trim($reply), $suggestions, $role, $context);
+                    }
+                } else {
+                    Log::error("Gemini API request failed: " . $response->body());
+                }
+            } catch (\Exception $e) {
+                Log::error("Error calling Gemini API: " . $e->getMessage());
+            }
+        }
 
         $topics = [
             'booking' => [

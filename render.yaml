@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: agripool-app
+    env: php
+    buildCommand: ./render-build.sh
+    envVars:
+      - key: DOCUMENT_ROOT
+        value: public
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: database/database.sqlite
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SESSION_DRIVER
+        value: cookie

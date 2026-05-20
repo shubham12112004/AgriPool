@@ -4,6 +4,7 @@ import { useTheme } from '../../hooks/useTheme'
 import { useAuthStore } from '../../store/authStore'
 import NotificationDropdown from './NotificationDropdown'
 import ProfileDropdown from './ProfileDropdown'
+import LanguageDropdown from './LanguageDropdown'
 
 export default function DashboardHeader({ title, subtitle, onMenuClick, onSidebarToggle }) {
   const { isDark, toggleTheme } = useTheme()
@@ -49,6 +50,12 @@ export default function DashboardHeader({ title, subtitle, onMenuClick, onSideba
             <Sparkles size={12} /> {role} mode
           </div>
         )}
+        
+        {/* Google Translate Hidden Target */}
+        <div id="google_translate_element" className="sr-only opacity-0 pointer-events-none absolute w-0 h-0"></div>
+
+        <LanguageDropdown />
+
         <button
           type="button"
           onClick={toggleTheme}

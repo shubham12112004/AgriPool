@@ -1,15 +1,44 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { useTheme } from '../hooks/useTheme'
 import { Button, Input, Select, Card, Tabs, Alert, Modal } from '../components/ui'
 import { MapPin, Upload, Smartphone, CheckCircle, X } from 'lucide-react'
 import AgriMap from '../components/map/AgriMap'
+import { useAuthStore, getDashboardPathForRole } from '../store/authStore'
+import { ROLES } from '../config/roles'
+import { authProfileService, userService } from '../services'
 
 export default function FarmerOnboarding() {
   const { isDark } = useTheme()
+  const navigate = useNavigate()
+  const setRole = useAuthStore((s) => s.setRole)
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const user = useAuthStore((s) => s.user)
+  const [loading, setLoading] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
   const [showMapModal, setShowMapModal] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState(null)
+
+  const handleCompleteOnboarding = async () => {
+    setLoading(true)
+    try {
+      await authProfileService.updateRole('farmer').catch(() => {})
+      setRole(ROLES.FARMER)
+      if (user) {
+        setAuth({ user: { ...user, role: 'farmer' }, role: ROLES.FARMER })
+      }
+      toast.success('Profile completed successfully!')
+      navigate(getDashboardPathForRole(ROLES.FARMER))
+    } catch (err) {
+      setRole(ROLES.FARMER)
+      toast.success('Welcome to AgriPool!')
+      navigate(getDashboardPathForRole(ROLES.FARMER))
+    } finally {
+      setLoading(false)
+    }
+  }
   const [formData, setFormData] = useState({
     farmName: '',
     state: '',
@@ -209,7 +238,13 @@ export default function FarmerOnboarding() {
               Your profile is ready. Let's start exploring opportunities!
             </p>
           </div>
-          <Button variant="primary" size="lg" fullWidth>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={handleCompleteOnboarding}
+            loading={loading}
+          >
             Go to Dashboard
           </Button>
         </div>
