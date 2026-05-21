@@ -39,6 +39,7 @@ import PaymentHistory from './pages/payments/PaymentHistory'
 import MapPage from './pages/MapPage'
 import Messages from './pages/Messages'
 import Settings from './pages/settings/Settings'
+import Profile from './pages/Profile'
 import SavedPage from './pages/SavedPage'
 import BrowseProducts from './pages/marketplace/BrowseProducts'
 import ProductDetail from './pages/marketplace/ProductDetail'
@@ -107,6 +108,7 @@ export default function App() {
               <Route path="/messages" element={<Messages />} />
               <Route path="/map" element={<MapPage />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/saved" element={<SavedPage />} />
               <Route path="/marketplace" element={<BrowseProducts />} />
               <Route path="/marketplace/:id" element={<ProductDetail />} />

@@ -8,7 +8,11 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem('language', language)
+    // Update HTML lang attribute for accessibility
+    document.documentElement.lang = language
   }, [language])
+
+  const changeLanguage = (code) => setLanguage(code)
 
   const t = (key) => {
     const keys = key.split('.')
@@ -18,7 +22,7 @@ export function LanguageProvider({ children }) {
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, changeLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   )

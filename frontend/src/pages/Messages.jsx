@@ -1,21 +1,37 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   ArrowRight,
   Bot,
+  Camera,
+  ImageIcon,
   MapPin,
   MessageCircle,
+  Mic,
+  MicOff,
   Send,
   Sparkles,
   Truck,
   User,
+  X,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 import PageHeader from '../components/shared/PageHeader'
 import { Badge, Button, Card, Spinner, Textarea } from '../components/ui'
 import { assistantService, bookingService, chatService } from '../services'
 import { useAuthStore } from '../store/authStore'
 import { getEcho, disconnectEcho } from '../lib/echo'
+import { useLanguage } from '../hooks/useLanguage'
+
+const SPEECH_LANGS = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  pa: 'pa-IN',
+  ta: 'ta-IN',
+  te: 'te-IN',
+}
 const assistantStarterPrompts = [
   'How does AgriPool work?',
   'How do I create or accept a booking?',
@@ -64,8 +80,51 @@ function MessageBubble({ message, isMine }) {
   )
 }
 
-function AssistantMessage({ message }) {
+function AssistantMessage({ message, currentLanguage }) {
   const isUser = message.role === 'user'
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const handleSpeak = () => {
+    if (isPlaying) {
+      window.speechSynthesis.cancel()
+      setIsPlaying(false)
+      return
+    }
+
+    window.speechSynthesis.cancel()
+
+    const textToSpeak = `${message.body} ${message.hint ? `. ${message.hint}` : ''}`
+    const utterance = new SpeechSynthesisUtterance(textToSpeak)
+    const voiceLang = SPEECH_LANGS[currentLanguage] || 'en-IN'
+    utterance.lang = voiceLang
+
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const voices = window.speechSynthesis.getVoices()
+      const matchingVoice = voices.find((v) => v.lang.startsWith(currentLanguage))
+      if (matchingVoice) {
+        utterance.voice = matchingVoice
+      }
+    }
+
+    utterance.onend = () => {
+      setIsPlaying(false)
+    }
+
+    utterance.onerror = () => {
+      setIsPlaying(false)
+    }
+
+    setIsPlaying(true)
+    window.speechSynthesis.speak(utterance)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (isPlaying) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [isPlaying])
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -76,8 +135,22 @@ function AssistantMessage({ message }) {
             : 'bg-slate-950 text-white rounded-bl-md'
         }`}
       >
-        <div className="text-xs font-medium mb-1 opacity-80">
-          {isUser ? 'You' : 'AgriPool Assistant'}
+        <div className="flex items-center justify-between gap-4 mb-1">
+          <div className="text-xs font-medium opacity-80">
+            {isUser ? 'You' : 'AgriPool Assistant'}
+          </div>
+          {!isUser && (
+            <button
+              type="button"
+              onClick={handleSpeak}
+              title={isPlaying ? 'Stop voice' : 'Listen in your language'}
+              className={`p-1 rounded-lg hover:bg-white/10 text-white transition-all ${
+                isPlaying ? 'text-amber-400 bg-white/5 animate-pulse' : 'opacity-60 hover:opacity-100'
+              }`}
+            >
+              {isPlaying ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            </button>
+          )}
         </div>
         <p className="whitespace-pre-wrap text-sm leading-6">{message.body}</p>
         {message.hint && <p className="mt-2 text-xs opacity-80">{message.hint}</p>}
@@ -109,9 +182,73 @@ export default function Messages() {
   ])
   const [assistantInput, setAssistantInput] = useState('')
   const [assistantLoading, setAssistantLoading] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [attachedImage, setAttachedImage] = useState(null)
+  const [attachedImageFile, setAttachedImageFile] = useState(null)
 
   const chatScrollRef = useRef(null)
   const assistantScrollRef = useRef(null)
+  const recognitionRef = useRef(null)
+  const cameraInputRef = useRef(null)
+
+  const { language } = useLanguage()
+
+  // ── Speech Recognition ────────────────────────────────────────────
+  const toggleListening = useCallback(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      toast.error('Speech recognition is not supported in this browser.')
+      return
+    }
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = SPEECH_LANGS[language] || 'en-IN'
+    recognition.interimResults = false
+    recognition.continuous = false
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript || ''
+      if (transcript) {
+        setAssistantInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
+      }
+    }
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error)
+      if (event.error !== 'aborted') {
+        toast.error(`Mic error: ${event.error}`)
+      }
+      setIsListening(false)
+    }
+
+    recognition.onend = () => setIsListening(false)
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsListening(true)
+  }, [isListening, language])
+
+  // ── Camera / Image Attachment ─────────────────────────────────────
+  const handleImageSelected = useCallback((event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setAttachedImageFile(file)
+    setAttachedImage(URL.createObjectURL(file))
+    // reset input so same file can be re-selected
+    event.target.value = ''
+  }, [])
+
+  const removeAttachedImage = useCallback(() => {
+    if (attachedImage) URL.revokeObjectURL(attachedImage)
+    setAttachedImage(null)
+    setAttachedImageFile(null)
+  }, [attachedImage])
 
   const currentBooking = useMemo(
     () => bookings.find((booking) => booking.id === selectedBookingId) || null,
@@ -386,15 +523,21 @@ export default function Messages() {
   }
 
   async function handleAssistantSend(value = assistantInput) {
-    const prompt = value.trim()
+    let prompt = (typeof value === 'string' ? value : assistantInput).trim()
 
-    if (!prompt) return
+    if (!prompt && !attachedImage) return
+
+    // Prepend image tag when a photo is attached
+    if (attachedImage) {
+      prompt = `[Photo attached: crop/field image] ${prompt}`.trim()
+    }
 
     setAssistantMessages((current) => [
       ...current,
       { id: `user-${Date.now()}`, role: 'user', body: prompt },
     ])
     setAssistantInput('')
+    removeAttachedImage()
     setAssistantLoading(true)
 
     try {
@@ -648,7 +791,7 @@ export default function Messages() {
 
           <div className="flex-1 overflow-auto p-4 space-y-3 bg-slate-50 dark:bg-dark-bg">
             {assistantMessages.map((message) => (
-              <AssistantMessage key={message.id} message={message} />
+              <AssistantMessage key={message.id} message={message} currentLanguage={language} />
             ))}
             {assistantLoading && (
               <div className="flex justify-start">
@@ -674,13 +817,42 @@ export default function Messages() {
               ))}
             </div>
 
+            {/* Hidden camera file input */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleImageSelected}
+            />
+
             <form
               onSubmit={(event) => {
                 event.preventDefault()
                 handleAssistantSend()
               }}
-              className="flex items-end gap-3"
+              className="space-y-2"
             >
+              {/* Image preview */}
+              {attachedImage && (
+                <div className="relative inline-block">
+                  <img
+                    src={attachedImage}
+                    alt="Attached preview"
+                    className="h-20 w-20 rounded-xl object-cover border-2 border-primary-300 dark:border-primary-700 shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeAttachedImage}
+                    className="absolute -top-2 -right-2 rounded-full bg-rose-500 text-white p-0.5 shadow-md hover:bg-rose-600 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Textarea */}
               <Textarea
                 rows={3}
                 value={assistantInput}
@@ -688,9 +860,52 @@ export default function Messages() {
                 placeholder="Ask about AgriPool..."
                 className="resize-none"
               />
-              <Button type="submit" loading={assistantLoading} disabled={!assistantInput.trim()} icon={Send}>
-                Ask
-              </Button>
+
+              {/* Bottom toolbar: Mic · Camera · Send */}
+              <div className="flex items-center gap-2">
+                {/* Mic button */}
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  title={isListening ? 'Stop recording' : 'Start voice input'}
+                  className={`relative rounded-xl p-2.5 transition-all duration-200 ${
+                    isListening
+                      ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-dark-card dark:text-neutral-300 dark:hover:bg-dark-border'
+                  }`}
+                >
+                  {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                  {isListening && (
+                    <span className="absolute inset-0 rounded-xl animate-ping bg-rose-400 opacity-40" />
+                  )}
+                </button>
+
+                {/* Camera button */}
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  title="Attach a photo"
+                  className={`rounded-xl p-2.5 transition-all duration-200 ${
+                    attachedImage
+                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-950 dark:text-primary-300'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-dark-card dark:text-neutral-300 dark:hover:bg-dark-border'
+                  }`}
+                >
+                  {attachedImage ? <ImageIcon size={18} /> : <Camera size={18} />}
+                </button>
+
+                <div className="flex-1" />
+
+                {/* Send button */}
+                <Button
+                  type="submit"
+                  loading={assistantLoading}
+                  disabled={!assistantInput.trim() && !attachedImage}
+                  icon={Send}
+                >
+                  Ask
+                </Button>
+              </div>
             </form>
 
             <div className="flex flex-wrap gap-2 text-xs text-neutral-500 dark:text-neutral-400">

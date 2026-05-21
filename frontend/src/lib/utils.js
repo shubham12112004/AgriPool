@@ -18,3 +18,34 @@ export function formatDate(date) {
     timeStyle: 'short',
   }).format(new Date(date))
 }
+
+const API_ORIGIN = (() => {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    return window.location.origin
+  }
+  if (envUrl) {
+    try {
+      return new URL(envUrl).origin
+    } catch {
+      return window.location.origin
+    }
+  }
+  return window.location.origin
+})()
+
+export function getAvatarUrl(avatar) {
+  if (!avatar) return null
+  if (avatar.startsWith('http')) return avatar
+  
+  const cleanPath = avatar.replace(/^\//, '')
+  if (cleanPath.startsWith('storage/')) {
+    return `${API_ORIGIN}/${cleanPath}`
+  }
+  return `${API_ORIGIN}/storage/${cleanPath}`
+}
+

@@ -1,19 +1,180 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import {
+  X,
+  User,
+  Settings,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  Calendar,
+  Activity,
+  CreditCard,
+  Star,
+  LayoutDashboard,
+  Receipt,
+  Bookmark,
+} from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
-import { useAuthStore } from '../../store/authStore'
+import { useAuthStore, getDashboardPathForRole } from '../../store/authStore'
 import { authService } from '../../services'
+import { getAvatarUrl } from '../../lib/utils'
+
+/* ── helpers ─────────────────────────────────────────── */
+
+const API_ORIGIN = (() => {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    return window.location.origin
+  }
+  if (envUrl) {
+    try {
+      return new URL(envUrl).origin
+    } catch {
+      return window.location.origin
+    }
+  }
+  return window.location.origin
+})()
+
+function resolveAvatar(avatar) {
+  return getAvatarUrl(avatar)
+}
+
+/* ── animation variants ──────────────────────────────── */
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+}
+
+const panelVariants = {
+  hidden: { x: '100%', opacity: 0.5 },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: { type: 'spring', damping: 28, stiffness: 300 },
+  },
+  exit: {
+    x: '100%',
+    opacity: 0,
+    transition: { type: 'tween', duration: 0.22, ease: 'easeIn' },
+  },
+}
+
+const staggerContainer = {
+  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.08 } },
+}
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.28 } },
+}
+
+/* ── sub-components ──────────────────────────────────── */
+
+function AvatarImage({ src, initials, size = 32, className = '', ring = false }) {
+  const [failed, setFailed] = useState(false)
+  const resolved = resolveAvatar(src)
+
+  const base = `rounded-full flex items-center justify-center font-semibold text-white bg-gradient-to-br from-primary-400 to-primary-600 overflow-hidden ${className}`
+
+  if (resolved && !failed) {
+    return (
+      <div
+        className={`${base} ${ring ? 'p-[3px] bg-gradient-to-br from-emerald-400 via-primary-500 to-teal-500' : ''}`}
+        style={{ width: size, height: size }}
+      >
+        <img
+          src={resolved}
+          alt="Avatar"
+          onError={() => setFailed(true)}
+          className={`rounded-full object-cover ${ring ? 'border-2 border-white dark:border-dark-card' : ''}`}
+          style={{
+            width: ring ? size - 6 : size,
+            height: ring ? size - 6 : size,
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`${base} ${ring ? 'ring-[3px] ring-emerald-400/60' : ''}`}
+      style={{ width: size, height: size, fontSize: size * 0.38 }}
+    >
+      {initials}
+    </div>
+  )
+}
+
+function StatCard({ icon: Icon, value, label, isDark }) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
+        isDark
+          ? 'bg-white/[0.04] hover:bg-white/[0.07]'
+          : 'bg-neutral-50 hover:bg-neutral-100'
+      }`}
+    >
+      <Icon size={18} className="text-primary-500" />
+      <span className="text-base font-bold">{value}</span>
+      <span className="text-[11px] opacity-60 leading-none">{label}</span>
+    </motion.div>
+  )
+}
+
+function ActionLink({ to, icon: Icon, label, isDark, onClick }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+        isDark
+          ? 'hover:bg-white/[0.06] text-neutral-200'
+          : 'hover:bg-neutral-50 text-neutral-700'
+      }`}
+    >
+      <span
+        className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+          isDark ? 'bg-white/[0.06]' : 'bg-neutral-100'
+        }`}
+      >
+        <Icon size={16} className="text-primary-500" />
+      </span>
+      <span className="flex-1">{label}</span>
+      <ChevronRight
+        size={15}
+        className="opacity-0 -translate-x-1 group-hover:opacity-60 group-hover:translate-x-0 transition-all"
+      />
+    </Link>
+  )
+}
+
+/* ── main component ──────────────────────────────────── */
 
 export default function ProfileDropdown() {
   const { isDark } = useTheme()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
-  const { user, logout } = useAuthStore()
+  const { user, role, logout } = useAuthStore()
+
   const name = user?.name || user?.email || 'User'
+  const email = user?.email || ''
+  const initials = name.charAt(0).toUpperCase()
+  const dashboardPath = getDashboardPathForRole(role)
+
+  const close = useCallback(() => setOpen(false), [])
 
   const handleLogout = async () => {
+    close()
     try {
       await authService.logout()
     } catch {
@@ -23,53 +184,195 @@ export default function ProfileDropdown() {
     navigate('/login')
   }
 
+  /* ── quick stats (placeholder data) ── */
+  const stats = [
+    { icon: Calendar, value: '12', label: 'Bookings' },
+    { icon: Activity, value: '3', label: 'Active' },
+    { icon: CreditCard, value: '₹8.4k', label: 'Payments' },
+    { icon: Star, value: '4.8', label: 'Rating' },
+  ]
+
+  /* ── quick actions ── */
+  const actions = [
+    { to: '/profile', icon: User, label: 'My Profile' },
+    { to: dashboardPath, icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/bookings', icon: Calendar, label: 'My Bookings' },
+    { to: '/payments/history', icon: Receipt, label: 'Payment History' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+    { to: '/saved', icon: Bookmark, label: 'Saved Items' },
+  ]
+
   return (
-    <motion.div layout className="relative">
-      <button
+    <>
+      {/* ── Trigger Button ── */}
+      <motion.button
         type="button"
-        onClick={() => setOpen(!open)}
+        whileTap={{ scale: 0.96 }}
+        onClick={() => setOpen(true)}
         className={`flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl transition-colors ${
           isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-100'
         }`}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-semibold">
-          {name.charAt(0).toUpperCase()}
-        </div>
-        <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">{name}</span>
+        <AvatarImage src={user?.avatar} initials={initials} size={32} />
+        <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">
+          {name}
+        </span>
         <ChevronDown size={16} className="hidden sm:block opacity-60" />
-      </button>
+      </motion.button>
 
+      {/* ── Slide-out Panel ── */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            className={`absolute right-0 mt-2 w-52 rounded-xl shadow-xl border py-1 z-50 ${
-              isDark ? 'bg-dark-card border-dark-border' : 'bg-white border-neutral-200'
-            }`}
-          >
-            <Link
-              to="/settings"
-              onClick={() => setOpen(false)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm ${
-                isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-50'
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="profile-backdrop"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={close}
+              className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm"
+            />
+
+            {/* Panel */}
+            <motion.aside
+              key="profile-panel"
+              variants={panelVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`fixed top-0 right-0 z-[100] h-full w-full sm:w-[340px] flex flex-col overflow-y-auto shadow-2xl border-l ${
+                isDark
+                  ? 'bg-dark-card/95 backdrop-blur-xl border-dark-border text-neutral-100'
+                  : 'bg-white/95 backdrop-blur-xl border-neutral-200 text-neutral-900'
               }`}
             >
-              <Settings size={16} /> Settings
-            </Link>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 ${
-                isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-50'
-              }`}
-            >
-              <LogOut size={16} /> Log out
-            </button>
-          </motion.div>
+              {/* ── Close ── */}
+              <div className="flex justify-end p-4 pb-0">
+                <motion.button
+                  type="button"
+                  whileHover={{ rotate: 90 }}
+                  whileTap={{ scale: 0.85 }}
+                  onClick={close}
+                  className={`p-2 rounded-xl transition-colors ${
+                    isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
+                  }`}
+                >
+                  <X size={20} />
+                </motion.button>
+              </div>
+
+              {/* ── Profile Header ── */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col items-center px-6 pb-5"
+              >
+                <motion.div variants={fadeUp} className="relative mb-3">
+                  <AvatarImage
+                    src={user?.avatar}
+                    initials={initials}
+                    size={80}
+                    ring
+                  />
+                  {/* Online dot */}
+                  <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-dark-card" />
+                </motion.div>
+
+                <motion.h2
+                  variants={fadeUp}
+                  className="text-lg font-bold tracking-tight"
+                >
+                  {name}
+                </motion.h2>
+
+                {email && (
+                  <motion.p
+                    variants={fadeUp}
+                    className="text-xs opacity-50 mt-0.5"
+                  >
+                    {email}
+                  </motion.p>
+                )}
+
+                {role && (
+                  <motion.span
+                    variants={fadeUp}
+                    className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary-500/10 text-primary-500"
+                  >
+                    {role.replace(/[_-]/g, ' ')}
+                  </motion.span>
+                )}
+              </motion.div>
+
+              {/* ── Quick Stats ── */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-2 gap-2 px-5 pb-4"
+              >
+                {stats.map((s) => (
+                  <StatCard key={s.label} {...s} isDark={isDark} />
+                ))}
+              </motion.div>
+
+              {/* Divider */}
+              <div
+                className={`mx-5 border-t ${
+                  isDark ? 'border-dark-border' : 'border-neutral-100'
+                }`}
+              />
+
+              {/* ── Quick Actions ── */}
+              <motion.nav
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="flex-1 flex flex-col gap-0.5 px-3 py-3"
+              >
+                {actions.map((a) => (
+                  <motion.div key={a.to} variants={fadeUp}>
+                    <ActionLink {...a} isDark={isDark} onClick={close} />
+                  </motion.div>
+                ))}
+              </motion.nav>
+
+              {/* Divider */}
+              <div
+                className={`mx-5 border-t ${
+                  isDark ? 'border-dark-border' : 'border-neutral-100'
+                }`}
+              />
+
+              {/* ── Logout ── */}
+              <div className="px-5 py-4">
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleLogout}
+                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                    isDark
+                      ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                      : 'bg-red-50 text-red-600 hover:bg-red-100'
+                  }`}
+                >
+                  <LogOut size={17} />
+                  Log out
+                </motion.button>
+              </div>
+
+              {/* ── Footer ── */}
+              <p className="text-center text-[11px] opacity-30 pb-5 select-none">
+                AgriPool v1.0 · Member since 2024
+              </p>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
-    </motion.div>
+    </>
   )
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { DollarSign, Calendar, Star, TrendingUp, Plus, Truck, MapPin, ArrowRight, MessageCircle } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
+import { useLanguage } from '../../hooks/useLanguage'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
 import BookingCard from '../../components/booking/BookingCard'
@@ -25,8 +26,31 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
+export const translateStatLabel = (label, t) => {
+  const map = {
+    'Total spent': 'dashboard.stats.totalSpent',
+    'Total spent (month)': 'dashboard.stats.totalSpent',
+    'Active bookings': 'dashboard.stats.activeBookings',
+    'Rating': 'dashboard.stats.rating',
+    'Completed': 'dashboard.stats.completed',
+    'Completed jobs': 'dashboard.stats.completed',
+    'Earnings (month)': 'dashboard.stats.earningsMonth',
+    'Monthly earnings': 'dashboard.stats.earningsMonth',
+    'Active trips': 'dashboard.stats.activeTrips',
+    'Jobs done': 'dashboard.stats.jobsDone',
+    'Listed items': 'dashboard.stats.listedItems',
+    'Pending rentals': 'dashboard.stats.pendingRentals',
+    'Orders': 'dashboard.stats.orders',
+    'Saved items': 'dashboard.stats.savedItems',
+    'Spent (month)': 'dashboard.stats.spentMonth',
+    'Active carts': 'dashboard.stats.activeCarts',
+  }
+  return map[label] ? t(map[label]) : label
+}
+
 export default function FarmerDashboard() {
   const { isDark } = useTheme()
+  const { t } = useLanguage()
   const [stats, setStats] = useState([])
   const [bookings, setBookings] = useState([])
   const [markers, setMarkers] = useState([])
@@ -54,18 +78,18 @@ export default function FarmerDashboard() {
       className="space-y-8"
     >
       <PageHeader
-        title="Welcome back"
-        subtitle="Manage equipment, transport, and crop listings"
+        title={t('dashboard.farmer.welcome')}
+        subtitle={t('dashboard.farmer.subtitle_main')}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link to="/bookings/new">
               <Button variant="primary" className="gap-2">
-                <Plus size={18} /> New booking
+                <Plus size={18} /> {t('dashboard.newBooking')}
               </Button>
             </Link>
             <Link to="/messages">
               <Button variant="secondary" className="gap-2">
-                <MessageCircle size={18} /> Messages
+                <MessageCircle size={18} /> {t('nav.messages')}
               </Button>
             </Link>
           </div>
@@ -75,7 +99,7 @@ export default function FarmerDashboard() {
       {/* Stats Grid */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {displayStats.map((s, i) => (
-          <StatCard key={s.label} label={s.label} value={s.value} icon={ICONS[i]} trend={s.trend} />
+          <StatCard key={s.label} label={translateStatLabel(s.label, t)} value={s.value} icon={ICONS[i]} trend={s.trend} />
         ))}
       </motion.div>
 
@@ -85,8 +109,8 @@ export default function FarmerDashboard() {
         <Card className={cn('lg:col-span-1 p-6 hover:shadow-lg transition-shadow', isDark ? 'hover:border-primary-500/30' : 'hover:border-primary-400/50')}>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="font-bold text-lg">Live map</h3>
-              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>Nearby drivers & routes</p>
+              <h3 className="font-bold text-lg">{t('dashboard.liveMap')}</h3>
+              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>{t('dashboard.liveMapSubtitle')}</p>
             </div>
             <Link to="/map" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
               <ArrowRight size={20} />
@@ -102,18 +126,18 @@ export default function FarmerDashboard() {
             <Card className={cn('p-6 hover:shadow-lg transition-shadow', isDark ? 'hover:border-primary-500/30' : 'hover:border-primary-400/50')}>
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="font-bold text-lg">Recent bookings</h3>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>Your latest trips</p>
+                  <h3 className="font-bold text-lg">{t('dashboard.recentBookings')}</h3>
+                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>{t('dashboard.recentBookingsSubtitle')}</p>
                 </div>
                 <Link to="/bookings" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium text-sm">
-                  View all →
+                  {t('dashboard.viewAll')} →
                 </Link>
               </div>
               <div className="space-y-3">
                 {bookings.length === 0 ? (
                   <div className="py-8 text-center">
                     <Truck size={32} className={`mx-auto mb-3 ${isDark ? 'text-neutral-600' : 'text-neutral-400'}`} />
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>No bookings yet. Create your first trip.</p>
+                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>{t('dashboard.noBookings')}</p>
                   </div>
                 ) : (
                   bookings.map((b, idx) => (
@@ -133,24 +157,29 @@ export default function FarmerDashboard() {
 
           {/* Quick Actions */}
           <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-            <Card className="p-4 text-center hover:shadow-lg hover:border-primary-400/50 transition-all cursor-pointer group">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${ isDark ? 'bg-primary-500/20' : 'bg-primary-100' }`}>
-                <MapPin size={24} className="text-primary-600" />
-              </div>
-              <p className="font-medium text-sm">View Map</p>
-            </Card>
-            <Card className="p-4 text-center hover:shadow-lg hover:border-primary-400/50 transition-all cursor-pointer group">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${ isDark ? 'bg-primary-500/20' : 'bg-primary-100' }`}>
-                <Calendar size={24} className="text-primary-600" />
-              </div>
-              <p className="font-medium text-sm">Schedule Trip</p>
-            </Card>
+            <Link to="/map">
+              <Card className="p-4 text-center hover:shadow-lg hover:border-primary-400/50 transition-all cursor-pointer group h-full">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${ isDark ? 'bg-primary-500/20' : 'bg-primary-100' }`}>
+                  <MapPin size={24} className="text-primary-600" />
+                </div>
+                <p className="font-medium text-sm">{t('dashboard.viewMap')}</p>
+              </Card>
+            </Link>
+            <Link to="/bookings/new">
+              <Card className="p-4 text-center hover:shadow-lg hover:border-primary-400/50 transition-all cursor-pointer group h-full">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${ isDark ? 'bg-primary-500/20' : 'bg-primary-100' }`}>
+                  <Calendar size={24} className="text-primary-600" />
+                </div>
+                <p className="font-medium text-sm">{t('dashboard.scheduleTrip')}</p>
+              </Card>
+            </Link>
           </motion.div>
         </div>
       </motion.div>
     </motion.div>
   )
 }
+
 
 // Utility function
 function cn(...classes) {

@@ -34,7 +34,16 @@ export default function Navbar() {
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
     { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
+    { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
+    { code: 'te', name: 'తెలుగు', flag: '🇮🇳' },
   ]
+
+  const getAvatarUrl = (avatar) => {
+    if (!avatar) return null
+    if (avatar.startsWith('http')) return avatar
+    if (avatar.startsWith('/')) return avatar
+    return `/storage/${avatar}`
+  }
 
   const dashboardPath = user ? getDashboardPathForRole(role) : '/register'
 
@@ -167,16 +176,16 @@ export default function Navbar() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 focus:outline-none"
                 >
-                  {user.avatar ? (
+                  {getAvatarUrl(user.avatar) ? (
                     <img
-                      src={user.avatar.startsWith('http') ? user.avatar : `/storage/${user.avatar}`}
+                      src={getAvatarUrl(user.avatar)}
                       alt={user.name}
                       className="w-10 h-10 rounded-full object-cover border-2 border-primary-500 shadow-sm"
                       onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                     />
                   ) : null}
                   <div
-                    style={{ display: user.avatar ? 'none' : 'flex' }}
+                    style={{ display: getAvatarUrl(user.avatar) ? 'none' : 'flex' }}
                     className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-bold flex items-center justify-center border-2 border-primary-500 shadow-sm"
                   >
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}

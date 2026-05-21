@@ -1,32 +1,37 @@
 import React, { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useLanguage } from '../hooks/useLanguage'
 import Sidebar from '../components/layout/Sidebar'
 import DashboardHeader from '../components/layout/DashboardHeader'
 
 const PAGE_TITLES = {
-  '/dashboard/farmer': { title: 'Farmer Dashboard', subtitle: 'Overview of your farm operations' },
-  '/dashboard/driver': { title: 'Driver Dashboard', subtitle: 'Manage trips and earnings' },
-  '/dashboard/equipment-owner': { title: 'Equipment Dashboard', subtitle: 'Manage rentals and inventory' },
-  '/dashboard/buyer': { title: 'Buyer Dashboard', subtitle: 'Browse and order fresh produce' },
-  '/dashboard/admin': { title: 'Admin Panel', subtitle: 'Platform management' },
-  '/bookings': { title: 'Bookings', subtitle: 'Track all your bookings' },
-  '/messages': { title: 'Messages', subtitle: 'Realtime chat and AgriPool assistance' },
-  '/map': { title: 'Map', subtitle: 'Nearby services and routes' },
-  '/settings': { title: 'Settings', subtitle: 'Account and preferences' },
-  '/payments/history': { title: 'Payments', subtitle: 'Transaction history' },
-  '/marketplace': { title: 'Marketplace', subtitle: 'Fresh produce from local farms' },
+  '/dashboard/farmer': { title: 'dashboard.farmer.title', subtitle: 'dashboard.farmer.subtitle' },
+  '/dashboard/driver': { title: 'dashboard.driver.title', subtitle: 'dashboard.driver.subtitle' },
+  '/dashboard/equipment-owner': { title: 'dashboard.equipment_owner.title', subtitle: 'dashboard.equipment_owner.subtitle' },
+  '/dashboard/buyer': { title: 'dashboard.buyer.title', subtitle: 'dashboard.buyer.subtitle' },
+  '/dashboard/admin': { title: 'dashboard.admin.title', subtitle: 'dashboard.admin.subtitle' },
+  '/bookings': { title: 'nav.bookings', subtitle: 'dashboard.bookings.subtitle' },
+  '/messages': { title: 'nav.messages', subtitle: 'dashboard.messages.subtitle' },
+  '/map': { title: 'nav.map', subtitle: 'dashboard.map.subtitle' },
+  '/settings': { title: 'nav.settings', subtitle: 'dashboard.settings.subtitle' },
+  '/payments/history': { title: 'nav.payments', subtitle: 'dashboard.payments.subtitle' },
+  '/marketplace': { title: 'nav.marketplace', subtitle: 'dashboard.marketplace.subtitle' },
 }
 
 export default function DashboardLayout() {
   const { isDark } = useTheme()
+  const { t } = useLanguage()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const meta = Object.entries(PAGE_TITLES).find(([path]) =>
     location.pathname.startsWith(path)
-  )?.[1] || { title: 'AgriPool', subtitle: '' }
+  )?.[1] || { title: 'app.name', subtitle: '' }
+
+  const translatedTitle = t(meta.title)
+  const translatedSubtitle = meta.subtitle ? t(meta.subtitle) : ''
 
   return (
     <div className={`relative h-screen flex overflow-hidden ${isDark ? 'bg-dark-bg text-neutral-50' : 'bg-neutral-50 text-neutral-900'}`}>
@@ -39,8 +44,8 @@ export default function DashboardLayout() {
       />
       <div className={`relative flex-1 flex flex-col min-w-0 transition-all duration-300`}>
         <DashboardHeader
-          title={meta.title}
-          subtitle={meta.subtitle}
+          title={translatedTitle}
+          subtitle={translatedSubtitle}
           onMenuClick={() => setSidebarOpen(true)}
           onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
@@ -51,3 +56,4 @@ export default function DashboardLayout() {
     </div>
   )
 }
+

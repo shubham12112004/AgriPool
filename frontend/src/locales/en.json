@@ -54,9 +54,157 @@
     "continueWithGoogle": "Continue with Google",
     "forgotPassword": "Forgot password?"
   },
+  "roles": {
+    "farmer": "Farmer",
+    "driver": "Driver",
+    "equipment-owner": "Equipment Owner",
+    "buyer": "Buyer",
+    "admin": "Admin"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your professional AgriPool profile, credentials, and achievements.",
+    "cancelEdit": "Cancel Edit",
+    "editProfile": "Edit Profile",
+    "changePhoto": "Change Photo",
+    "defaultMember": "AgriPool Member",
+    "defaultBio": "Farming is not just a job, it is a way of life. Proud member of the AgriPool community, sharing resources for a better harvest.",
+    "defaultLocation": "Punjab, India",
+    "defaultOrg": "AgriPool Co-op",
+    "displayName": "Display Name",
+    "username": "Username",
+    "shortBio": "Short Bio",
+    "saveProfile": "Save Profile Details",
+    "location": "Location",
+    "organization": "Organization",
+    "phone": "Phone",
+    "joined": "Joined",
+    "specializations": "Specializations",
+    "bookingStats": "Bookings Stats",
+    "completion": "Completion",
+    "done": "Done",
+    "active": "Active",
+    "activityOverview": "Activity Overview",
+    "totalBookings": "Total Bookings",
+    "completed": "Completed",
+    "ongoing": "Ongoing",
+    "accountStatus": "Account Status",
+    "statusActive": "Active",
+    "role": "Role",
+    "activityHeatmap": "Booking Activity Heatmap",
+    "heatmapDesc": "Learn how activity is recorded",
+    "less": "Less",
+    "more": "More",
+    "badgesTitle": "Badges & Achievements",
+    "unlocked": "Unlocked",
+    "badges": {
+      "early_bird": {
+        "name": "Early Bird",
+        "desc": "Member since launch"
+      },
+      "agri_hero": {
+        "name": "Agri Hero",
+        "desc": "Completed over 5 bookings"
+      },
+      "quick_responder": {
+        "name": "Quick Responder",
+        "desc": "Fast turnaround in bookings"
+      },
+      "verified_partner": {
+        "name": "Verified Partner",
+        "desc": "AgriPool verified user"
+      }
+    },
+    "specs": {
+      "organic_farming": "Organic Farming",
+      "crop_rotation": "Crop Rotation",
+      "wheat_sourcing": "Wheat Sourcing",
+      "sustainable_agriculture": "Sustainable Agriculture",
+      "smart_irrigation": "Smart Irrigation",
+      "heavy_duty_logistics": "Heavy Duty Logistics",
+      "refrigerated_transport": "Refrigerated Transport",
+      "intra_state_delivery": "Intra-State Delivery",
+      "express_route_mapping": "Express Route Mapping",
+      "safety_first_certified": "Safety First Certified",
+      "tractor_fleet": "Tractor Fleet",
+      "harvesters": "Harvesters",
+      "preventative_maintenance": "Preventative Maintenance",
+      "flexible_pricing": "Flexible Pricing",
+      "farming_implements": "Farming Implements",
+      "bulk_sourcing": "Bulk Sourcing",
+      "direct_sourcing": "Direct Sourcing",
+      "quality_assurance": "Quality Assurance",
+      "supply_chain": "Supply Chain",
+      "fair_trade_partner": "Fair Trade Partner",
+      "platform_moderation": "Platform Moderation",
+      "analytics_slicing": "Analytics Slicing",
+      "user_verification": "User Verification",
+      "system_support": "System Support"
+    }
+  },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to AgriPool"
+    "welcome": "Welcome to AgriPool",
+    "newBooking": "New Booking",
+    "liveMap": "Live Map",
+    "liveMapSubtitle": "Real-time logistics and tractor tracking",
+    "recentBookings": "Recent Bookings",
+    "recentBookingsSubtitle": "Status of your latest requests",
+    "viewAll": "View All",
+    "noBookings": "No bookings found",
+    "viewMap": "View Map",
+    "scheduleTrip": "Schedule Trip",
+    "stats": {
+      "totalSpent": "Total Spent",
+      "activeBookings": "Active Bookings",
+      "rating": "Rating",
+      "completed": "Completed Jobs",
+      "earningsMonth": "Monthly Earnings",
+      "activeTrips": "Active Trips",
+      "jobsDone": "Jobs Done",
+      "listedItems": "Listed Items",
+      "pendingRentals": "Pending Rentals",
+      "orders": "Orders",
+      "savedItems": "Saved Items",
+      "spentMonth": "Spent (Month)",
+      "activeCarts": "Active Carts"
+    },
+    "farmer": {
+      "welcome": "Welcome to AgriPool",
+      "subtitle_main": "Rent machinery, book transport, and manage your farm operations."
+    },
+    "driver": {
+      "title": "Driver Dashboard",
+      "subtitle_main": "Manage your trips, vehicle availability, and transit jobs",
+      "availability_status": "Availability Status",
+      "online_desc": "You are online and visible to farmers looking for transport",
+      "offline_desc": "You are offline. Go online to start receiving booking requests",
+      "online": "Online",
+      "offline": "Offline",
+      "route_map": "Route Map",
+      "realtime_location": "Real-time tracking of your location",
+      "booking_requests": "Booking Requests",
+      "pending_assignments": "Review and accept new trip requests",
+      "no_requests": "No pending trip requests"
+    },
+    "owner": {
+      "title": "Equipment Portfolio",
+      "subtitle": "Manage listings, pricing, and rental requests",
+      "addEquipment": "Add Equipment",
+      "yourEquipment": "Your Equipment",
+      "statusAvailable": "Available",
+      "statusRented": "Rented"
+    },
+    "buyer": {
+      "title": "Buyer Marketplace",
+      "subtitle": "Discover fresh produce from verified farmers",
+      "browseMarketplace": "Browse Marketplace",
+      "recommended": "Recommended for you",
+      "unit": {
+        "quintal": "quintal",
+        "kg": "kg"
+      }
+    }
   },
   "footer": {
     "copyright": "Copyright © 2026 AgriPool — Built for startups"

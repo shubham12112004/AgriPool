@@ -2,6 +2,8 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Package, Heart, TrendingUp } from 'lucide-react'
+import { useLanguage } from '../../hooks/useLanguage'
+import { translateStatLabel } from './FarmerDashboard'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
 import { Button, Card } from '../../components/ui'
@@ -12,27 +14,29 @@ const PRODUCTS = [
 ]
 
 export default function BuyerDashboard() {
+  const { t } = useLanguage()
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       <PageHeader
-        title="Buyer marketplace"
-        subtitle="Discover fresh produce from verified farmers"
+        title={t('dashboard.buyer.title')}
+        subtitle={t('dashboard.buyer.subtitle')}
         actions={
           <Link to="/marketplace">
-            <Button variant="primary">Browse marketplace</Button>
+            <Button variant="primary">{t('dashboard.buyer.browseMarketplace')}</Button>
           </Link>
         }
       />
 
       <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Orders" value="12" icon={Package} trend="+2" />
-        <StatCard label="Saved items" value="8" icon={Heart} />
-        <StatCard label="Spent (month)" value="₹15,400" icon={TrendingUp} />
-        <StatCard label="Active carts" value="1" icon={ShoppingBag} />
+        <StatCard label={translateStatLabel('Orders', t)} value="12" icon={Package} trend="+2" />
+        <StatCard label={translateStatLabel('Saved items', t)} value="8" icon={Heart} />
+        <StatCard label={translateStatLabel('Spent (month)', t)} value="₹15,400" icon={TrendingUp} />
+        <StatCard label={translateStatLabel('Active carts', t)} value="1" icon={ShoppingBag} />
       </motion.div>
 
       <Card className="p-5">
-        <h3 className="font-semibold mb-4">Recommended for you</h3>
+        <h3 className="font-semibold mb-4">{t('dashboard.buyer.recommended')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {PRODUCTS.map((p) => (
             <Link
@@ -43,7 +47,7 @@ export default function BuyerDashboard() {
               <p className="font-medium">{p.name}</p>
               <p className="text-sm text-neutral-500">{p.farm}</p>
               <p className="text-primary-600 dark:text-primary-400 font-semibold mt-2">
-                ₹{p.price}/{p.unit}
+                ₹{p.price}/{p.unit === 'quintal' ? t('dashboard.buyer.unit.quintal') : t('dashboard.buyer.unit.kg')}
               </p>
             </Link>
           ))}
@@ -52,3 +56,4 @@ export default function BuyerDashboard() {
     </motion.div>
   )
 }
+

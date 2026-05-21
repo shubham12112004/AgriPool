@@ -60,15 +60,15 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
         <div className="mx-3 mt-3 rounded-2xl border border-primary-500/10 bg-primary-500/5 p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-primary-600 dark:text-primary-400 font-semibold">Workspace</p>
-              <p className="text-sm font-semibold mt-1 capitalize">{role.replace('_', ' ')} dashboard</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-primary-600 dark:text-primary-400 font-semibold">{t('sidebar.workspace')}</p>
+              <p className="text-sm font-semibold mt-1 capitalize">{t(`sidebar.role_${role}`)}</p>
             </div>
             <div className="h-10 w-10 rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold">
               {String(role).slice(0, 1).toUpperCase()}
             </div>
           </div>
           <p className="mt-3 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
-            Manage bookings, chat, map views, and payments from one organized panel.
+            {t('sidebar.desc')}
           </p>
         </div>
       )}
@@ -97,10 +97,10 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
               isActive ? 'bg-primary-500/15 text-primary-600' : isDark ? 'hover:bg-dark-border' : 'hover:bg-neutral-100'
             )
           }
-          title={collapsed ? 'Settings' : ''}
+          title={collapsed ? t('nav.settings') : ''}
         >
           <Settings size={18} className="shrink-0" />
-          {!collapsed && <span>Settings</span>}
+          {!collapsed && <span>{t('nav.settings')}</span>}
         </NavLink>
       </div>
     </div>

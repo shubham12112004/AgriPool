@@ -10,7 +10,7 @@
     "faq": "सवाल",
     "login": "साइन इन",
     "dashboard": "डैशबोर्ड",
-    "logout": "लॉगआउट",
+    "logout": "लॉगआउ‌ट",
     "overview": "झलक",
     "bookings": "बुकिंग",
     "messages": "संदेश",
@@ -54,9 +54,157 @@
     "continueWithGoogle": "Google के साथ जारी रखें",
     "forgotPassword": "पासवर्ड भूल गए?"
   },
+  "roles": {
+    "farmer": "किसान",
+    "driver": "चालक",
+    "equipment-owner": "उपकरण मालिक",
+    "buyer": "खरीदार",
+    "admin": "व्यवस्थापक"
+  },
+  "profile": {
+    "title": "मेरी प्रोफ़ाइल",
+    "subtitle": "अपनी व्यावसायिक एग्रीपूल प्रोफ़ाइल, क्रेडेंशियल्स और उपलब्धियों को प्रबंधित करें।",
+    "cancelEdit": "संपादन रद्द करें",
+    "editProfile": "प्रोफ़ाइल संपादित करें",
+    "changePhoto": "फ़ोटो बदलें",
+    "defaultMember": "एग्रीपूल सदस्य",
+    "defaultBio": "खेती सिर्फ एक काम नहीं है, यह जीने का एक तरीका है। बेहतर फसल के लिए संसाधनों को साझा करने वाले एग्रीपूल समुदाय का गर्वित सदस्य।",
+    "defaultLocation": "पंजाब, भारत",
+    "defaultOrg": "एग्रीपूल सहकारी",
+    "displayName": "प्रदर्शन नाम",
+    "username": "यूज़रनेम",
+    "shortBio": "संक्षिप्त जीवनी",
+    "saveProfile": "प्रोफ़ाइल विवरण सहेजें",
+    "location": "स्थान",
+    "organization": "संगठन",
+    "phone": "फ़ोन",
+    "joined": "शामिल हुए",
+    "specializations": "विशेषज्ञता",
+    "bookingStats": "बुकिंग आँकड़े",
+    "completion": "पूर्णता",
+    "done": "पूरा हुआ",
+    "active": "सक्रिय",
+    "activityOverview": "गतिविधि अवलोकन",
+    "totalBookings": "कुल बुकिंग",
+    "completed": "पूर्ण",
+    "ongoing": "सक्रिय",
+    "accountStatus": "खाते की स्थिति",
+    "statusActive": "सक्रिय",
+    "role": "भूमिका",
+    "activityHeatmap": "बुकिंग गतिविधि हीटमैप",
+    "heatmapDesc": "जानें कि गतिविधि कैसे दर्ज की जाती है",
+    "less": "कम",
+    "more": "अधिक",
+    "badgesTitle": "बैज और उपलब्धियां",
+    "unlocked": "अनलॉक किया गया",
+    "badges": {
+      "early_bird": {
+        "name": "शुरुआती सदस्य",
+        "desc": "लॉन्च के समय से सदस्य"
+      },
+      "agri_hero": {
+        "name": "कृषि नायक",
+        "desc": "5 से अधिक बुकिंग पूरी कीं"
+      },
+      "quick_responder": {
+        "name": "त्वरित उत्तरदाता",
+        "desc": "बुकिंग में त्वरित सेवा"
+      },
+      "verified_partner": {
+        "name": "सत्यापित भागीदार",
+        "desc": "एग्रीपूल सत्यापित उपयोगकर्ता"
+      }
+    },
+    "specs": {
+      "organic_farming": "जैविक खेती",
+      "crop_rotation": "फसल चक्र",
+      "wheat_sourcing": "गेहूं सोर्सिंग",
+      "sustainable_agriculture": "सतत कृषि",
+      "smart_irrigation": "स्मार्ट सिंचाई",
+      "heavy_duty_logistics": "भारी रसद",
+      "refrigerated_transport": "रेफ्रिजरेटेड परिवहन",
+      "intra_state_delivery": "राज्य के भीतर वितरण",
+      "express_route_mapping": "एक्सप्रेस रूट मैपिंग",
+      "safety_first_certified": "सुरक्षा प्रथम प्रमाणित",
+      "tractor_fleet": "टैक्टर बेड़ा",
+      "harvesters": "हार्वेस्टर",
+      "preventative_maintenance": "निवारक रखरखाव",
+      "flexible_pricing": "लचीला मूल्य निर्धारण",
+      "farming_implements": "कृषि उपकरण",
+      "bulk_sourcing": "थोक खरीद",
+      "direct_sourcing": "प्रत्यक्ष खरीद",
+      "quality_assurance": "गुणवत्ता आश्वासन",
+      "supply_chain": "आपूर्ति श्रृंखला",
+      "fair_trade_partner": "उचित व्यापार भागीदार",
+      "platform_moderation": "प्लेटफ़ॉर्म मॉडरेशन",
+      "analytics_slicing": "विश्लेषण",
+      "user_verification": "उपयोगकर्ता सत्यापन",
+      "system_support": "सिस्टम सहायता"
+    }
+  },
   "dashboard": {
     "title": "डैशबोर्ड",
-    "welcome": "एग्रीपूल में स्वागत है"
+    "welcome": "एग्रीपूल में स्वागत है",
+    "newBooking": "नई बुकिंग",
+    "liveMap": "लाइव मैप",
+    "liveMapSubtitle": "वास्तविक समय रसद और ट्रैक्टर ट्रैकिंग",
+    "recentBookings": "हाल की बुकिंग",
+    "recentBookingsSubtitle": "आपके नवीनतम अनुरोधों की स्थिति",
+    "viewAll": "सभी देखें",
+    "noBookings": "कोई बुकिंग नहीं मिली",
+    "viewMap": "नक्शा देखें",
+    "scheduleTrip": "यात्रा निर्धारित करें",
+    "stats": {
+      "totalSpent": "कुल खर्च",
+      "activeBookings": "सक्रिय बुकिंग",
+      "rating": "रेटिंग",
+      "completed": "पूरे किए गए काम",
+      "earningsMonth": "मासिक कमाई",
+      "activeTrips": "सक्रिय यात्राएं",
+      "jobsDone": "किए गए काम",
+      "listedItems": "सूचीबद्ध आइटम",
+      "pendingRentals": "लंबित किराए",
+      "orders": "ऑर्डर",
+      "savedItems": "सहेजे गए आइटम",
+      "spentMonth": "खर्च (महीना)",
+      "activeCarts": "सक्रिय कार्ट"
+    },
+    "farmer": {
+      "welcome": "एग्रीपूल में आपका स्वागत है",
+      "subtitle_main": "मशीनरी किराए पर लें, परिवहन बुक करें, और अपने खेत के कार्यों का प्रबंधन करें।"
+    },
+    "driver": {
+      "title": "ड्राइवर डैशबोर्ड",
+      "subtitle_main": "अपनी यात्राओं, वाहन की उपलब्धता और पारगमन कार्यों को प्रबंधित करें",
+      "availability_status": "उपलब्धता स्थिति",
+      "online_desc": "आप ऑनलाइन हैं और परिवहन की तलाश कर रहे किसानों को दिखाई दे रहे हैं",
+      "offline_desc": "आप ऑफ़लाइन हैं। बुकिंग अनुरोध प्राप्त करना शुरू करने के लिए ऑनलाइन जाएं",
+      "online": "ऑनलाइन",
+      "offline": "ऑफ़लाइन",
+      "route_map": "रूट मैप",
+      "realtime_location": "आपके स्थान की वास्तविक समय ट्रैकिंग",
+      "booking_requests": "बुकिंग अनुरोध",
+      "pending_assignments": "नए यात्रा अनुरोधों की समीक्षा करें और स्वीकार करें",
+      "no_requests": "कोई लंबित यात्रा अनुरोध नहीं"
+    },
+    "owner": {
+      "title": "उपकरण पोर्टफोलियो",
+      "subtitle": "लिस्टिंग, मूल्य निर्धारण और किराये के अनुरोध प्रबंधित करें",
+      "addEquipment": "उपकरण जोड़ें",
+      "yourEquipment": "आपके उपकरण",
+      "statusAvailable": "उपलब्ध",
+      "statusRented": "किराए पर दिया गया"
+    },
+    "buyer": {
+      "title": "खरीदार बाज़ार",
+      "subtitle": "सत्यापित किसानों से ताजा उपज खोजें",
+      "browseMarketplace": "बाज़ार ब्राउज़ करें",
+      "recommended": "आपके लिए अनुशंसित",
+      "unit": {
+        "quintal": "क्विंटल",
+        "kg": "किग्रा"
+      }
+    }
   },
   "footer": {
     "copyright": "कॉपीराइट © 2026 एग्रीपूल"

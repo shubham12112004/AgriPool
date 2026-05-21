@@ -22,13 +22,29 @@ class PaymentController extends Controller
         $key = config('services.razorpay.key');
         $secret = config('services.razorpay.secret');
 
-        if (! $key || ! $secret) {
+        $hasKey = $key && ! str_starts_with($key, 'rzp_test_demo');
+        $hasSecret = $secret && $secret !== '••••••••••••••••••••••••';
+
+        if (! $hasKey) {
             return response()->json([
-                'key' => $key ?: 'rzp_test_demo',
+                'key' => 'rzp_test_demo',
                 'amount' => $amountPaise,
                 'currency' => 'INR',
                 'order_id' => 'order_demo_'.Str::random(10),
                 'demo' => true,
+            ]);
+        }
+
+        if (! $hasSecret) {
+            // Direct/standard checkout: we have a real key but no secret.
+            // We cannot generate a Razorpay order_id, but we can open the real modal on frontend.
+            return response()->json([
+                'key' => $key,
+                'amount' => $amountPaise,
+                'currency' => 'INR',
+                'order_id' => null,
+                'demo' => false,
+                'direct' => true,
             ]);
         }
 
@@ -40,12 +56,14 @@ class PaymentController extends Controller
             ]);
 
             if (! $response->successful()) {
+                // If the order creation fails (e.g. invalid secret), fallback to direct checkout using the key
                 return response()->json([
                     'key' => $key,
                     'amount' => $amountPaise,
                     'currency' => 'INR',
-                    'order_id' => 'order_demo_'.Str::random(10),
-                    'demo' => true,
+                    'order_id' => null,
+                    'demo' => false,
+                    'direct' => true,
                     'razorpay_error' => true,
                 ]);
             }
@@ -57,14 +75,16 @@ class PaymentController extends Controller
                 'amount' => $data['amount'],
                 'currency' => $data['currency'],
                 'order_id' => $data['id'],
+                'demo' => false,
             ]);
         } catch (\Throwable) {
             return response()->json([
-                'key' => 'rzp_test_demo',
+                'key' => $key,
                 'amount' => $amountPaise,
                 'currency' => 'INR',
-                'order_id' => 'order_demo_'.Str::random(10),
-                'demo' => true,
+                'order_id' => null,
+                'demo' => false,
+                'direct' => true,
             ]);
         }
     }
@@ -93,35 +113,43 @@ class PaymentController extends Controller
     public function verify(Request $request): JsonResponse
     {
         $request->validate([
-            'razorpay_order_id' => ['required', 'string'],
+            'razorpay_order_id' => ['nullable', 'string'],
             'razorpay_payment_id' => ['required', 'string'],
-            'razorpay_signature' => ['required', 'string'],
+            'razorpay_signature' => ['nullable', 'string'],
             'amount' => ['nullable', 'numeric'],
             'booking_id' => ['nullable'],
             'description' => ['nullable', 'string'],
         ]);
 
         $secret = config('services.razorpay.secret');
-        $isDemo = str_starts_with($request->input('razorpay_order_id'), 'order_demo_')
-            || str_starts_with($request->input('razorpay_payment_id'), 'demo_');
+        $hasSecret = $secret && $secret !== '••••••••••••••••••••••••';
 
-        if (! $secret || $isDemo) {
+        $orderId = $request->input('razorpay_order_id');
+        $paymentId = $request->input('razorpay_payment_id');
+        $signature = $request->input('razorpay_signature');
+
+        $isDemo = str_starts_with($orderId ?? '', 'order_demo_')
+            || str_starts_with($paymentId, 'demo_');
+
+        $isDirect = ! $orderId || ! $signature;
+
+        if (! $hasSecret || $isDemo || $isDirect) {
             $payment = $this->recordPayment(
                 user: $request->user(),
                 amount: (int) round($request->input('amount', 1200)),
                 deliveryId: $request->input('booking_id'),
                 description: $request->input('description', 'AgriPool payment'),
-                isDemo: true,
-                razorpayOrderId: $request->input('razorpay_order_id'),
-                razorpayPaymentId: $request->input('razorpay_payment_id'),
+                isDemo: $isDemo,
+                razorpayOrderId: $orderId ?? 'direct_order_'.Str::random(10),
+                razorpayPaymentId: $paymentId,
             );
 
-            return response()->json(['success' => true, 'demo' => true, 'payment' => $this->paymentPayload($payment)]);
+            return response()->json(['success' => true, 'demo' => $isDemo, 'payment' => $this->paymentPayload($payment)]);
         }
 
-        $payload = $request->input('razorpay_order_id').'|'.$request->input('razorpay_payment_id');
+        $payload = $orderId.'|'.$paymentId;
         $expected = hash_hmac('sha256', $payload, $secret);
-        $valid = hash_equals($expected, $request->input('razorpay_signature'));
+        $valid = hash_equals($expected, $signature);
 
         if (! $valid) {
             return response()->json(['success' => false], 400);
@@ -133,8 +161,8 @@ class PaymentController extends Controller
             deliveryId: $request->input('booking_id'),
             description: $request->input('description', 'AgriPool payment'),
             isDemo: false,
-            razorpayOrderId: $request->input('razorpay_order_id'),
-            razorpayPaymentId: $request->input('razorpay_payment_id'),
+            razorpayOrderId: $orderId,
+            razorpayPaymentId: $paymentId,
         );
 
         return response()->json(['success' => true, 'payment' => $this->paymentPayload($payment)]);

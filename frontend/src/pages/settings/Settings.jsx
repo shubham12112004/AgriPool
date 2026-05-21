@@ -7,7 +7,7 @@ import { useLanguage } from '../../hooks/useLanguage'
 import PageHeader from '../../components/shared/PageHeader'
 import { Card, Input, Button, Tabs, Select } from '../../components/ui'
 import { vehicleService, authService, userService } from '../../services'
-import { Moon, Sun, Globe, Bell, Lock, LogOut } from 'lucide-react'
+import { Moon, Sun, Globe, Bell, Lock, LogOut, Check } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,11 +15,19 @@ function cn(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
+const LANGUAGES = [
+  { code: 'en', name: 'English', native: 'English', flag: '🇬🇧' },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'pa', name: 'Punjabi', native: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்', flag: '🇮🇳' },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు', flag: '🇮🇳' },
+]
+
 export default function Settings() {
   const { isDark, toggleTheme } = useTheme()
   const { language, setLanguage } = useLanguage()
   const [searchParams] = useSearchParams()
-  const initialTab = searchParams.get('tab') === 'vehicle' ? 3 : 0
+  const initialTab = searchParams.get('tab') === 'vehicle' ? 4 : 0
   const user = useAuthStore((s) => s.user)
   const setAuth = useAuthStore((s) => s.setAuth)
   const [profile, setProfile] = useState({ name: '', email: '', phone: '' })
@@ -51,6 +59,13 @@ export default function Settings() {
       })
       .catch(() => {})
   }, [])
+
+  const getAvatarUrl = (avatar) => {
+    if (!avatar) return null
+    if (avatar.startsWith('http')) return avatar
+    if (avatar.startsWith('/')) return avatar
+    return `/storage/${avatar}`
+  }
 
   const saveProfile = async (e) => {
     e.preventDefault()
@@ -130,19 +145,25 @@ export default function Settings() {
             <Card className="p-6">
               <h3 className="text-lg font-bold mb-6">Account Information</h3>
               <div className="flex flex-col sm:flex-row gap-8 items-start">
-                <div className="relative group w-24 h-24 rounded-full overflow-hidden border border-neutral-300 dark:border-dark-border bg-neutral-100 dark:bg-dark-bg flex items-center justify-center flex-shrink-0">
-                  {user?.avatar ? (
+                <div className="relative group w-24 h-24 rounded-full overflow-hidden border-2 border-primary-500/30 bg-neutral-100 dark:bg-dark-bg flex items-center justify-center flex-shrink-0 shadow-lg">
+                  {getAvatarUrl(user?.avatar) ? (
                     <img
-                      src={user.avatar}
+                      src={getAvatarUrl(user.avatar)}
                       alt={user.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.nextSibling.style.display = 'flex'
+                      }}
                     />
-                  ) : (
-                    <div className="text-4xl text-neutral-400 font-bold">
-                      {user?.name ? user.name[0].toUpperCase() : 'U'}
-                    </div>
-                  )}
-                  <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-[10px] font-semibold text-center p-1">
+                  ) : null}
+                  <div
+                    style={{ display: getAvatarUrl(user?.avatar) ? 'none' : 'flex' }}
+                    className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-600 text-white text-3xl font-bold flex items-center justify-center"
+                  >
+                    {user?.name ? user.name[0].toUpperCase() : 'U'}
+                  </div>
+                  <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-[10px] font-semibold text-center p-1 rounded-full">
                     <input
                       type="file"
                       accept="image/*"
@@ -177,6 +198,62 @@ export default function Settings() {
                     Save profile
                   </Button>
                 </form>
+              </div>
+            </Card>
+          </div>
+        ),
+      },
+      {
+        label: 'Language',
+        content: (
+          <div className="space-y-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                <Globe size={20} className="text-primary-500" /> Language Preference
+              </h3>
+              <p className={`text-sm mb-6 ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                Choose your preferred language. The entire app will switch to the selected language.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {LANGUAGES.map((lang) => {
+                  const isActive = language === lang.code
+                  return (
+                    <motion.button
+                      key={lang.code}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setLanguage(lang.code)
+                        toast.success(`Language changed to ${lang.name}`)
+                      }}
+                      className={cn(
+                        'relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-3 group',
+                        isActive
+                          ? 'border-primary-500 bg-primary-500/10 shadow-lg shadow-primary-500/10'
+                          : isDark
+                            ? 'border-dark-border hover:border-primary-500/40 hover:bg-dark-border/50'
+                            : 'border-neutral-200 hover:border-primary-500/40 hover:bg-primary-50/50'
+                      )}
+                    >
+                      {isActive && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center"
+                        >
+                          <Check size={14} strokeWidth={3} />
+                        </motion.div>
+                      )}
+                      <span className="text-3xl">{lang.flag}</span>
+                      <div className="text-center">
+                        <div className="font-bold text-lg">{lang.native}</div>
+                        <div className={`text-xs mt-0.5 ${isDark ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                          {lang.name}
+                        </div>
+                      </div>
+                    </motion.button>
+                  )
+                })}
               </div>
             </Card>
           </div>
