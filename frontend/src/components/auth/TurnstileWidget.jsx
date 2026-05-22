@@ -131,7 +131,6 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
   const [failed, setFailed] = useState(false)
   const [unavailable, setUnavailable] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
-  const verifyTimeoutRef = useRef(null)
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
 
@@ -145,10 +144,6 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
 
   const handleSuccess = useCallback((token) => {
     if (!token) return
-    if (verifyTimeoutRef.current) {
-      clearTimeout(verifyTimeoutRef.current)
-      verifyTimeoutRef.current = null
-    }
     setVerified(true)
     setFailed(false)
     if (!token.startsWith('dev-token-mock-')) {
@@ -165,10 +160,6 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
   }, [])
 
   const handleFailure = useCallback((message) => {
-    if (verifyTimeoutRef.current) {
-      clearTimeout(verifyTimeoutRef.current)
-      verifyTimeoutRef.current = null
-    }
     setVerified(false)
     setFailed(false)
     setUnavailable(true)
@@ -248,18 +239,11 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
           }
         },
       })
-
-      // Set a timeout — if not verified within VERIFY_TIMEOUT, offer bypass
-      verifyTimeoutRef.current = setTimeout(() => {
-        if (!verified) {
-          markUnavailable()
-        }
-      }, VERIFY_TIMEOUT)
     } catch (err) {
       console.error('Turnstile render error:', err)
       markUnavailable()
     }
-  }, [siteKey, handleSuccess, handleExpired, handleFailure, markUnavailable, verified])
+  }, [siteKey, handleSuccess, handleExpired, handleFailure, markUnavailable])
 
   useEffect(() => {
     if (isDevHost()) {
@@ -279,9 +263,6 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
 
     return () => {
       cancelled = true
-      if (verifyTimeoutRef.current) {
-        clearTimeout(verifyTimeoutRef.current)
-      }
     }
     // Mount once — callbacks use refs so parent re-renders do not reset the widget
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,20 +322,9 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
     <div className="min-h-[70px] flex flex-col justify-center gap-2">
       <div
         ref={containerRef}
-        className={`flex justify-center transition-opacity ${verified ? 'opacity-90' : ''}`}
+        className="flex justify-center"
         data-theme={isDark ? 'dark' : 'light'}
-        aria-hidden={verified}
       />
-      {verified && (
-        <div
-          className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-400"
-          role="status"
-          aria-live="polite"
-        >
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
-          {statusMessage || 'Verification successful'}
-        </div>
-      )}
       {!import.meta.env.VITE_TURNSTILE_SITE_KEY && !verified && (
         <p className="text-xs text-center text-neutral-500 dark:text-neutral-400">
           Using Cloudflare test key (always passes in development)

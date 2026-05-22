@@ -170,13 +170,6 @@ export default function Register() {
             />
           </div>
 
-          <label className="flex items-start gap-2 cursor-pointer group mt-1">
-            <input type="checkbox" required className="mt-1 rounded border-neutral-300 text-agri-green focus:ring-agri-green transition-colors" />
-            <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-800 dark:group-hover:text-neutral-200 transition-colors">
-              I agree to the Terms and Privacy Policy
-            </span>
-          </label>
-
           <Button 
             type="submit" 
             variant="primary" 
