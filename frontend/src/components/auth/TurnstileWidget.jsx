@@ -25,17 +25,17 @@ function MockTurnstile({ onVerify, isDark }) {
   }
 
   return (
-    <div className={`mx-auto w-full max-w-[300px] h-[65px] rounded border flex items-center justify-between px-3 shadow-sm transition-all duration-300 ${
+    <div className={`mx-auto w-full max-w-[300px] h-[65px] rounded border flex items-center justify-between px-3 shadow-xs transition-all duration-300 ${
       isDark 
         ? 'bg-[#1c1c1c] border-[#333333] text-white' 
-        : 'bg-[#fafafa] border-[#e2e8f0] text-neutral-800'
+        : 'bg-[#fcfcfc] border-[#e0e0e0] text-neutral-800'
     }`}>
       <div className="flex items-center">
         {status === 'idle' && (
           <button
             type="button"
             onClick={handleVerify}
-            className={`w-6 h-6 rounded border transition-all flex items-center justify-center ${
+            className={`w-[26px] h-[26px] rounded-[4px] border transition-all duration-200 flex items-center justify-center hover:scale-[1.03] active:scale-[0.97] hover:shadow-[0_0_0_3px_rgba(59,130,246,0.15)] ${
               isDark 
                 ? 'border-[#444444] bg-[#121212] hover:border-[#666666]' 
                 : 'border-neutral-300 bg-white hover:border-neutral-400'
@@ -45,41 +45,54 @@ function MockTurnstile({ onVerify, isDark }) {
         )}
         
         {status === 'spinning' && (
-          <div className="w-6 h-6 flex items-center justify-center">
-            <RefreshCw className="h-4.5 w-4.5 text-[#f38020] animate-spin" />
+          <div className="w-[26px] h-[26px] flex items-center justify-center">
+            <svg className="animate-spin h-5 w-5 text-neutral-400 dark:text-neutral-500" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="3" r="2.2" className="opacity-100" />
+              <circle cx="18.36" cy="5.64" r="2.2" className="opacity-[0.875]" />
+              <circle cx="21" cy="12" r="2.2" className="opacity-[0.75]" />
+              <circle cx="18.36" cy="18.36" r="2.2" className="opacity-[0.625]" />
+              <circle cx="12" cy="21" r="2.2" className="opacity-[0.5]" />
+              <circle cx="5.64" cy="18.36" r="2.2" className="opacity-[0.375]" />
+              <circle cx="3" cy="12" r="2.2" className="opacity-[0.25]" />
+              <circle cx="5.64" cy="5.64" r="2.2" className="opacity-[0.125]" />
+            </svg>
           </div>
         )}
 
         {status === 'verified' && (
-          <div className="w-6 h-6 flex items-center justify-center text-emerald-500 animate-scale-up">
-            <CheckCircle2 className="h-6 w-6 fill-emerald-500 text-white dark:text-[#1c1c1c]" />
+          <div className="w-[26px] h-[26px] flex items-center justify-center text-emerald-500 animate-scale-up">
+            <div className="w-[26px] h-[26px] rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-xs">
+              <svg className="h-4.5 w-4.5 stroke-[3.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" strokeWidth="3" />
+              </svg>
+            </div>
           </div>
         )}
 
-        <span className={`ml-3 text-[13px] font-normal transition-colors ${
+        <span className={`ml-3.5 text-[13px] font-normal transition-colors select-none ${
           status === 'verified'
-            ? 'text-emerald-600 dark:text-emerald-400 font-medium'
+            ? 'text-neutral-800 dark:text-neutral-200 font-medium'
             : isDark ? 'text-neutral-300' : 'text-[#444444]'
         }`}>
           {status === 'idle' && 'Verify you are human'}
           {status === 'spinning' && 'Verifying...'}
-          {status === 'verified' && 'Success! Verified'}
+          {status === 'verified' && 'Success!'}
         </span>
       </div>
 
-      <div className="flex flex-col items-end opacity-90 select-none">
+      <div className="flex flex-col items-end justify-center select-none text-right shrink-0">
         <div className="flex items-center gap-1.5">
-          <svg className="h-4.5 w-4.5 text-[#f38020]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.38 12.35c.01-.11.02-.23.02-.35a6.01 6.01 0 00-11-3.23 4.5 4.5 0 00-6.9 3.83c0 .12.01.24.02.35A5.5 5.5 0 006.5 19.5h11a5.5 5.5 0 005.38-7.15z" />
+          <svg className="h-4 w-4 text-[#f38020]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.35 10.04A7.49 7.49 0 0012 4c-3.48 0-6.4 2.38-7.18 5.6A5.485 5.485 0 000 15c0 3.04 2.46 5.5 5.5 5.5h13c2.48 0 4.5-2.02 4.5-4.5 0-2.33-1.78-4.24-4.05-4.46z" />
           </svg>
-          <span className="text-[9px] font-semibold tracking-wider text-neutral-500 dark:text-neutral-400">
-            turnstile
+          <span className="text-[9px] font-bold tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
+            cloudflare
           </span>
         </div>
         <div className="text-[8px] text-neutral-400 dark:text-neutral-500 mt-0.5">
           <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" className="hover:underline">Privacy</a>
           <span className="mx-1">•</span>
-          <a href="https://www.cloudflare.com/website-terms/" target="_blank" rel="noopener noreferrer" className="hover:underline">Terms</a>
+          <a href="https://www.cloudflare.com/website-terms/" target="_blank" rel="noopener noreferrer" className="hover:underline">Help</a>
         </div>
       </div>
     </div>
