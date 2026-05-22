@@ -211,7 +211,7 @@ export default function Home() {
     <div className={`transition-colors duration-300 ${isDark ? 'bg-dark-bg text-white' : 'bg-white text-neutral-900'}`}>
       
       {/* Hero Section */}
-      <section className="relative pt-24 pb-20 px-4 overflow-hidden bg-gradient-to-br from-[#0c2018] to-[#123124]">
+      <section className="relative pt-28 pb-20 px-4 overflow-hidden bg-gradient-to-br from-[#0c2018] to-[#123124]">
         {/* Subtle background overlay map / dots (simulated with CSS pattern) */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary-900/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />

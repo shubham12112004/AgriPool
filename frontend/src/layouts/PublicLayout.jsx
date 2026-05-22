@@ -1,10 +1,12 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useTheme } from '../hooks/useTheme'
 
 export default function PublicLayout() {
   const { isDark } = useTheme()
+  const location = useLocation()
+  const isHome = location.pathname === '/'
 
   return (
     <div
@@ -13,7 +15,7 @@ export default function PublicLayout() {
       }`}
     >
       <Navbar />
-      <main className="pt-16">
+      <main className={isHome ? '' : 'pt-16'}>
         <Outlet />
       </main>
     </div>

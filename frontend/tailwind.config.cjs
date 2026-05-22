@@ -102,8 +102,13 @@ module.exports = {
         'aurora': 'auroraShift 16s linear infinite',
         'float': 'floatCard 6s ease-in-out infinite',
         'scroll': 'scroll 30s linear infinite',
+        'scale-up': 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
       },
       keyframes: {
+        scaleUp: {
+          '0%': { transform: 'scale(0.5)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },

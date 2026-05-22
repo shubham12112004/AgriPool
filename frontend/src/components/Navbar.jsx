@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Sun, Moon, Globe } from 'lucide-react'
 import { useLanguage } from '../hooks/useLanguage'
@@ -19,6 +19,8 @@ export default function Navbar() {
   const [langOpen, setLangOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const location = useLocation()
+  const isLandingPage = location.pathname === '/'
 
   useEffect(() => {
     setIsHydrated(true)
@@ -168,7 +170,7 @@ export default function Navbar() {
               </AnimatePresence>
             </motion.div>
 
-            {isHydrated && user ? (
+            {isHydrated && user && !isLandingPage ? (
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -299,7 +301,7 @@ export default function Navbar() {
                   </a>
                 ))}
                 <motion.div layout className="pt-4 mt-2 border-t border-neutral-200 dark:border-dark-border space-y-2 px-1">
-                  {user ? (
+                  {user && !isLandingPage ? (
                     <>
                       <div className="px-3 py-2 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary-500 text-white font-bold flex items-center justify-center">

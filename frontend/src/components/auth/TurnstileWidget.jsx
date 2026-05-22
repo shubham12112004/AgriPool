@@ -3,13 +3,87 @@ import { CheckCircle2, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 
 const SCRIPT_TIMEOUT = 5000
-const VERIFY_TIMEOUT = 8000
+const VERIFY_TIMEOUT = 3000
 const TURNSTILE_INITIALIZED_ATTR = 'data-turnstile-initialized'
 
 function isDevHost() {
   if (typeof window === 'undefined') return false
   const host = window.location.hostname
   return host === 'localhost' || host === '127.0.0.1'
+}
+
+function MockTurnstile({ onVerify, isDark }) {
+  const [status, setStatus] = useState('idle') // 'idle' | 'spinning' | 'verified'
+
+  const handleVerify = () => {
+    if (status !== 'idle') return
+    setStatus('spinning')
+    setTimeout(() => {
+      setStatus('verified')
+      onVerify('dev-token-mock-' + Date.now())
+    }, 1200)
+  }
+
+  return (
+    <div className={`mx-auto w-full max-w-[300px] h-[65px] rounded border flex items-center justify-between px-3 shadow-sm transition-all duration-300 ${
+      isDark 
+        ? 'bg-[#1c1c1c] border-[#333333] text-white' 
+        : 'bg-[#fafafa] border-[#e2e8f0] text-neutral-800'
+    }`}>
+      <div className="flex items-center">
+        {status === 'idle' && (
+          <button
+            type="button"
+            onClick={handleVerify}
+            className={`w-6 h-6 rounded border transition-all flex items-center justify-center ${
+              isDark 
+                ? 'border-[#444444] bg-[#121212] hover:border-[#666666]' 
+                : 'border-neutral-300 bg-white hover:border-neutral-400'
+            }`}
+            aria-label="Verify you are human"
+          />
+        )}
+        
+        {status === 'spinning' && (
+          <div className="w-6 h-6 flex items-center justify-center">
+            <RefreshCw className="h-4.5 w-4.5 text-[#f38020] animate-spin" />
+          </div>
+        )}
+
+        {status === 'verified' && (
+          <div className="w-6 h-6 flex items-center justify-center text-emerald-500 animate-scale-up">
+            <CheckCircle2 className="h-6 w-6 fill-emerald-500 text-white dark:text-[#1c1c1c]" />
+          </div>
+        )}
+
+        <span className={`ml-3 text-[13px] font-normal transition-colors ${
+          status === 'verified'
+            ? 'text-emerald-600 dark:text-emerald-400 font-medium'
+            : isDark ? 'text-neutral-300' : 'text-[#444444]'
+        }`}>
+          {status === 'idle' && 'Verify you are human'}
+          {status === 'spinning' && 'Verifying...'}
+          {status === 'verified' && 'Success! Verified'}
+        </span>
+      </div>
+
+      <div className="flex flex-col items-end opacity-90 select-none">
+        <div className="flex items-center gap-1.5">
+          <svg className="h-4.5 w-4.5 text-[#f38020]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.38 12.35c.01-.11.02-.23.02-.35a6.01 6.01 0 00-11-3.23 4.5 4.5 0 00-6.9 3.83c0 .12.01.24.02.35A5.5 5.5 0 006.5 19.5h11a5.5 5.5 0 005.38-7.15z" />
+          </svg>
+          <span className="text-[9px] font-semibold tracking-wider text-neutral-500 dark:text-neutral-400">
+            turnstile
+          </span>
+        </div>
+        <div className="text-[8px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+          <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" className="hover:underline">Privacy</a>
+          <span className="mx-1">•</span>
+          <a href="https://www.cloudflare.com/website-terms/" target="_blank" rel="noopener noreferrer" className="hover:underline">Terms</a>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function waitForTurnstile() {
@@ -64,7 +138,9 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
     }
     setVerified(true)
     setFailed(false)
-    setUnavailable(false)
+    if (!token.startsWith('dev-token-mock-')) {
+      setUnavailable(false)
+    }
     setStatusMessage('Security check passed')
     onVerifyRef.current?.(token)
   }, [])
@@ -81,8 +157,9 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
       verifyTimeoutRef.current = null
     }
     setVerified(false)
-    setFailed(true)
-    setStatusMessage(message || 'Verification failed')
+    setFailed(false)
+    setUnavailable(true)
+    setStatusMessage('')
     onVerifyRef.current?.(null)
     onErrorRef.current?.(message)
   }, [])
@@ -173,10 +250,7 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
 
   useEffect(() => {
     if (isDevHost()) {
-      const timer = setTimeout(() => {
-        handleSuccess('dev-token-' + Date.now())
-      }, 200)
-      return () => clearTimeout(timer)
+      return
     }
 
     if (widgetIdRef.current != null) return
@@ -203,14 +277,7 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
   if (isDevHost()) {
     return (
       <div className="min-h-[70px] flex flex-col justify-center">
-        <div
-          className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 dark:text-emerald-400"
-          role="status"
-          aria-live="polite"
-        >
-          <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-          Dev mode — security check auto-verified
-        </div>
+        <MockTurnstile onVerify={handleSuccess} isDark={isDark} />
       </div>
     )
   }
@@ -218,23 +285,8 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
   // Turnstile unavailable — allow user to proceed
   if (unavailable) {
     return (
-      <div className="min-h-[70px] flex flex-col justify-center gap-2">
-        <div
-          className="flex items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400"
-          role="status"
-          aria-live="polite"
-        >
-          <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
-          {statusMessage || 'Security check unavailable'}
-        </div>
-        <button
-          type="button"
-          onClick={resetWidget}
-          className="flex items-center justify-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Try again
-        </button>
+      <div className="min-h-[70px] flex flex-col justify-center">
+        <MockTurnstile onVerify={handleSuccess} isDark={isDark} />
       </div>
     )
   }
@@ -262,10 +314,10 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
           <span className="text-neutral-300 dark:text-neutral-600">|</span>
           <button
             type="button"
-            onClick={markUnavailable}
+            onClick={() => setUnavailable(true)}
             className="text-xs font-medium text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
           >
-            Skip & proceed
+            Use Mock Checkbox
           </button>
         </div>
       </div>
