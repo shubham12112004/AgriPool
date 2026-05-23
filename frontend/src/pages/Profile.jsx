@@ -54,6 +54,7 @@ export default function Profile() {
   const { user, setAuth } = useAuthStore()
   const [profileLoading, setProfileLoading] = useState(false)
   const [avatarLoading, setAvatarLoading] = useState(false)
+  const [avatarFailed, setAvatarFailed] = useState(false)
   const [bookings, setBookings] = useState([])
   const [bookingsLoading, setBookingsLoading] = useState(true)
 
@@ -94,6 +95,11 @@ export default function Profile() {
       .catch(() => {})
       .finally(() => setBookingsLoading(false))
   }, [])
+
+  // Reset avatar failed state when user's avatar path changes
+  useEffect(() => {
+    setAvatarFailed(false)
+  }, [user?.avatar])
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -297,23 +303,20 @@ export default function Profile() {
           <div className="flex flex-col items-center text-center mt-2">
             {/* Avatar block with upload trigger */}
             <div className="relative group w-28 h-28 rounded-full overflow-hidden border-4 border-emerald-500/20 shadow-xl mb-4 bg-neutral-100 dark:bg-dark-bg flex items-center justify-center">
-              {getAvatarUrl(user?.avatar) ? (
+              {getAvatarUrl(user?.avatar) && !avatarFailed ? (
                 <img
                   src={getAvatarUrl(user.avatar)}
-                  alt={user.name}
+                  alt={user?.name || 'User'}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'flex'
-                  }}
+                  onError={() => setAvatarFailed(true)}
                 />
-              ) : null}
-              <div
-                style={{ display: getAvatarUrl(user?.avatar) ? 'none' : 'flex' }}
-                className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-600 text-white text-4xl font-extrabold flex items-center justify-center"
-              >
-                {user?.name ? user.name[0].toUpperCase() : 'U'}
-              </div>
+              ) : (
+                <div
+                  className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-600 text-white text-4xl font-extrabold flex items-center justify-center"
+                >
+                  {user?.name ? user.name[0].toUpperCase() : 'U'}
+                </div>
+              )}
 
               {/* Upload trigger */}
               <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white p-2">

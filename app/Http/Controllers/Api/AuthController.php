@@ -161,10 +161,11 @@ class AuthController extends Controller
             ]
         );
 
+        $resetUrl = request()->getSchemeAndHttpHost() . "/reset-password?token={$token}&email=" . urlencode($user->email);
+
         // Send Custom Mailable HTML Email
         try {
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $token) {
-                $resetUrl = url("/reset-password?token={$token}&email=" . urlencode($user->email));
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $resetUrl) {
                 $message->to($user->email)
                     ->subject('Reset Password Notification')
                     ->html("

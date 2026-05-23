@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -81,6 +81,10 @@ const fadeUp = {
 function AvatarImage({ src, initials, size = 32, className = '', ring = false }) {
   const [failed, setFailed] = useState(false)
   const resolved = resolveAvatar(src)
+
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
 
   const base = `rounded-full flex items-center justify-center font-semibold text-white bg-gradient-to-br from-primary-400 to-primary-600 overflow-hidden ${className}`
 

@@ -14,6 +14,7 @@ export default function ForgotPassword() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [devToken, setDevToken] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,7 +26,10 @@ export default function ForgotPassword() {
     setLoading(true)
     setError('')
     try {
-      await authService.forgotPassword(email)
+      const response = await authService.forgotPassword(email)
+      if (response && response.dev_token) {
+        setDevToken(response.dev_token)
+      }
       toast.success('Reset link sent to your email!')
       setIsSubmitted(true)
     } catch (err) {
@@ -133,6 +137,28 @@ export default function ForgotPassword() {
                   Don't see the email? Check your spam folder or wait a few minutes.
                 </p>
               </div>
+
+              {devToken && (
+                <div className={`p-4 rounded-xl text-left border ${
+                  isDark
+                    ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-300'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                }`}>
+                  <p className="text-sm font-semibold mb-1.5 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Test Mode Direct Link:
+                  </p>
+                  <p className="text-xs break-all bg-black/10 dark:bg-black/30 p-2 rounded select-all font-mono mb-3">
+                    {`${window.location.origin}/reset-password?token=${devToken}&email=${encodeURIComponent(email)}`}
+                  </p>
+                  <Link
+                    to={`/reset-password?token=${devToken}&email=${encodeURIComponent(email)}`}
+                    className="inline-flex items-center text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline"
+                  >
+                    Go to reset page &rarr;
+                  </Link>
+                </div>
+              )}
 
               <Link to="/login" className="block">
                 <Button variant="primary" size="lg" fullWidth>

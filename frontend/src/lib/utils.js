@@ -40,9 +40,18 @@ const API_ORIGIN = (() => {
 
 export function getAvatarUrl(avatar) {
   if (!avatar) return null
-  if (avatar.startsWith('http')) return avatar
   
-  const cleanPath = avatar.replace(/^\//, '')
+  let path = avatar
+  if (avatar.startsWith('http')) {
+    try {
+      const url = new URL(avatar)
+      path = url.pathname
+    } catch {
+      // Fallback if URL parsing fails
+    }
+  }
+  
+  const cleanPath = path.replace(/^\//, '')
   if (cleanPath.startsWith('storage/')) {
     return `${API_ORIGIN}/${cleanPath}`
   }
