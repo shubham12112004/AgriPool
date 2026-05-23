@@ -21,6 +21,7 @@ export default function Navbar() {
   const [isHydrated, setIsHydrated] = useState(false)
   const location = useLocation()
   const isLandingPage = location.pathname === '/'
+  const isTransparentDark = isLandingPage && !scrolled
 
   useEffect(() => {
     setIsHydrated(true)
@@ -75,7 +76,7 @@ export default function Navbar() {
           <Link
             to="/"
             className={`flex items-center gap-2.5 font-bold text-xl transition-transform hover:scale-[1.02] ${
-              isDark ? 'text-neutral-50' : 'text-neutral-900'
+              isTransparentDark || isDark ? 'text-neutral-50' : 'text-neutral-900'
             }`}
           >
             <motion.div
@@ -83,7 +84,11 @@ export default function Navbar() {
             >
               <AgriPoolLogo className="w-9 h-9" />
             </motion.div>
-            <span className="bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-300">
+            <span className={`bg-gradient-to-r bg-clip-text text-transparent ${
+              isTransparentDark || isDark
+                ? 'from-primary-400 to-primary-300'
+                : 'from-primary-600 to-primary-500'
+            }`}>
               AgriPool
             </span>
           </Link>
@@ -94,9 +99,11 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`text-sm font-medium transition-colors ${
-                  isDark
-                    ? 'text-neutral-300 hover:text-primary-400'
-                    : 'text-neutral-600 hover:text-primary-600'
+                  isTransparentDark
+                    ? 'text-neutral-200 hover:text-white'
+                    : isDark
+                      ? 'text-neutral-300 hover:text-primary-400'
+                      : 'text-neutral-700 hover:text-primary-600'
                 }`}
               >
                 {t(link.label)}
@@ -110,9 +117,11 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
               className={`p-2.5 rounded-xl transition-colors ${
-                isDark
-                  ? 'bg-dark-card/80 hover:bg-dark-card border border-dark-border'
-                  : 'bg-neutral-100 hover:bg-neutral-200'
+                isTransparentDark
+                  ? 'border border-white/20 bg-white/5 text-white hover:bg-white/10 backdrop-blur-sm'
+                  : isDark
+                    ? 'bg-dark-card/80 hover:bg-dark-card border border-dark-border text-neutral-300'
+                    : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
               }`}
               aria-label="Toggle theme"
             >
@@ -124,9 +133,11 @@ export default function Navbar() {
                 whileHover={{ scale: 1.02 }}
                 onClick={() => setLangOpen(!langOpen)}
                 className={`p-2.5 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors ${
-                  isDark
-                    ? 'bg-dark-card/80 hover:bg-dark-card border border-dark-border'
-                    : 'bg-neutral-100 hover:bg-neutral-200'
+                  isTransparentDark
+                    ? 'border border-white/20 bg-white/5 text-white hover:bg-white/10 backdrop-blur-sm'
+                    : isDark
+                      ? 'bg-dark-card/80 hover:bg-dark-card border border-dark-border text-neutral-300'
+                      : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
                 }`}
               >
                 <Globe size={18} />
@@ -254,7 +265,11 @@ export default function Navbar() {
             ) : (
               <div className="hidden sm:flex items-center gap-2">
                 <Link to="/login">
-                  <Button variant="ghost" size="md">
+                  <Button 
+                    variant="ghost" 
+                    size="md"
+                    className={isTransparentDark ? '!text-neutral-100 hover:!text-white hover:bg-white/10' : ''}
+                  >
                     {t('auth.signin')}
                   </Button>
                 </Link>
@@ -269,7 +284,13 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2.5 rounded-xl"
+              className={`md:hidden p-2.5 rounded-xl transition-colors ${
+                isTransparentDark
+                  ? 'text-white hover:bg-white/10'
+                  : isDark
+                    ? 'text-neutral-300 hover:text-white hover:bg-dark-card'
+                    : 'text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100'
+              }`}
               aria-label="Menu"
             >
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
