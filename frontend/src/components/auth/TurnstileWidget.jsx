@@ -133,6 +133,8 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
   const [statusMessage, setStatusMessage] = useState('')
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
+  const isTestKey = !siteKey || siteKey.startsWith('1x000000') || siteKey.startsWith('2x000000') || siteKey.startsWith('3x000000')
+  const shouldUseMock = isDevHost() || isTestKey
 
   onVerifyRef.current = onVerify
   onErrorRef.current = onError
@@ -246,7 +248,7 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
   }, [siteKey, handleSuccess, handleExpired, handleFailure, markUnavailable])
 
   useEffect(() => {
-    if (isDevHost()) {
+    if (shouldUseMock) {
       return
     }
 
@@ -268,7 +270,7 @@ export default function TurnstileWidget({ onVerify, onError, onUnavailable }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteKey])
 
-  if (isDevHost()) {
+  if (shouldUseMock) {
     return (
       <div className="min-h-[70px] flex flex-col justify-center">
         <MockTurnstile onVerify={handleSuccess} isDark={isDark} />
