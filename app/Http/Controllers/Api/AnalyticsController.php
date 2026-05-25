@@ -108,6 +108,7 @@ class AnalyticsController extends Controller
             'success' => true,
             'stats' => $stats,
             'crops' => $crops,
+            'support_requests' => \App\Models\SupportRequest::orderBy('created_at', 'desc')->get(),
         ]);
     }
 

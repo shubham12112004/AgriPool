@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EquipmentController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\VehicleController;
+use App\Http\Controllers\Api\SupportController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,11 @@ Route::middleware(['spa.auth'])->group(function () {
     Route::get('/analytics/stats', [AnalyticsController::class, 'stats']);
     Route::get('/admin/dashboard-data', [AnalyticsController::class, 'adminDashboardData']);
     Route::get('/admin/ai-advice', [AnalyticsController::class, 'adminAiAdvice']);
+
+    // Support routes
+    Route::post('/support/submit', [SupportController::class, 'store']);
+    Route::get('/admin/support-requests', [SupportController::class, 'index']);
+    Route::put('/admin/support-requests/{id}/resolve', [SupportController::class, 'resolve']);
 
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index']);

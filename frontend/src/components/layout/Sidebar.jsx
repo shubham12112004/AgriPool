@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { X, Settings, Moon, Sun } from 'lucide-react'
+import { X, Settings, Moon, Sun, HelpCircle } from 'lucide-react'
+import SupportModal from '../shared/SupportModal'
 import { useTheme } from '../../hooks/useTheme'
 import { useLanguage } from '../../hooks/useLanguage'
 import { useAuthStore } from '../../store/authStore'
@@ -16,6 +17,7 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
   const role = useAuthStore((s) => s.role) || 'farmer'
   const navItems = getDashboardNav(role)
   const [showLangMenu, setShowLangMenu] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
 
   const linkClass = ({ isActive }) =>
     cn(
@@ -102,6 +104,20 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
           <Settings size={18} className="shrink-0" />
           {!collapsed && <span>{t('nav.settings')}</span>}
         </NavLink>
+
+        {/* Help & Support Button */}
+        <button
+          type="button"
+          onClick={() => setSupportOpen(true)}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left',
+            isDark ? 'text-neutral-400 hover:bg-dark-border hover:text-neutral-100' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+          )}
+          title={collapsed ? 'Help & Support' : ''}
+        >
+          <HelpCircle size={18} className="shrink-0 text-primary-500" />
+          {!collapsed && <span>Help & Support</span>}
+        </button>
       </div>
     </div>
   )
@@ -119,6 +135,7 @@ export default function Sidebar({ open, onClose, collapsed = false, onCollapseCh
       >
         {content}
       </aside>
+      <SupportModal isOpen={supportOpen} onClose={() => setSupportOpen(false)} />
     </>
   )
 }

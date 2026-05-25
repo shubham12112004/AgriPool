@@ -14,12 +14,15 @@ import {
   BookOpen,
   DollarSign,
   TrendingUp,
-  Award
+  Award,
+  HelpCircle,
+  CheckCircle,
+  Inbox
 } from 'lucide-react'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
 import { Card, Button, Input, Badge, Spinner } from '../../components/ui'
-import { adminService } from '../../services'
+import { adminService, analyticsService, supportService } from '../../services'
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
@@ -30,6 +33,12 @@ export default function AdminDashboard() {
   const [aiAdvice, setAiAdvice] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
+  const [supportRequests, setSupportRequests] = useState([])
+  const [revenueData, setRevenueData] = useState([])
+  const [hoveredDataPoint, setHoveredDataPoint] = useState(null)
+  const [hoveredSlice, setHoveredSlice] = useState(null)
+  const [resolvingId, setResolvingId] = useState(null)
+
   const fetchData = async (showToast = false) => {
     try {
       setLoading(true)
@@ -37,9 +46,18 @@ export default function AdminDashboard() {
       if (res?.success) {
         setStats(res.stats)
         setCrops(res.crops || [])
-        if (showToast) {
-          toast.success('Dashboard metrics refreshed')
-        }
+        setSupportRequests(res.support_requests || [])
+      }
+
+      try {
+        const revRes = await analyticsService.getRevenueChart(30)
+        setRevenueData(revRes || [])
+      } catch (err) {
+        console.error('Failed to load revenue chart data:', err)
+      }
+
+      if (showToast) {
+        toast.success('Dashboard metrics refreshed')
       }
     } catch (err) {
       console.error(err)
@@ -62,6 +80,24 @@ export default function AdminDashboard() {
       toast.error('Failed to retrieve AgriAI suggestions')
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  const handleResolveSupport = async (id) => {
+    try {
+      setResolvingId(id)
+      const res = await supportService.resolveRequest(id)
+      if (res?.success) {
+        toast.success('Support request resolved successfully')
+        setSupportRequests((prev) =>
+          prev.map((req) => (req.id === id ? { ...req, status: 'resolved' } : req))
+        )
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to resolve support request')
+    } finally {
+      setResolvingId(null)
     }
   }
 
@@ -354,6 +390,298 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
+      {/* Interactive Live Reports Section */}
+      {(() => {
+        const getFallbackRevenueData = () => {
+          const data = []
+          for (let i = 29; i >= 0; i--) {
+            const d = new Date()
+            d.setDate(d.getDate() - i)
+            data.push({
+              date: d.toISOString().split('T')[0],
+              revenue: 0,
+              bookings: 0
+            })
+          }
+          return data
+        }
+
+        const activeRevenueData = revenueData.length > 0 ? revenueData : getFallbackRevenueData()
+        const maxRevenue = Math.max(...activeRevenueData.map(d => d.revenue), 1000)
+        
+        const chartWidth = 600
+        const chartHeight = 200
+        const padding = { top: 20, right: 20, bottom: 30, left: 50 }
+
+        const points = activeRevenueData.map((d, index) => {
+          const x = padding.left + (index * (chartWidth - padding.left - padding.right)) / Math.max(activeRevenueData.length - 1, 1)
+          const y = chartHeight - padding.bottom - (d.revenue / maxRevenue) * (chartHeight - padding.top - padding.bottom)
+          return { x, y, data: d }
+        })
+
+        const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+        const areaPath = points.length > 0
+          ? `${linePath} L ${points[points.length - 1].x} ${chartHeight - padding.bottom} L ${points[0].x} ${chartHeight - padding.bottom} Z`
+          : ''
+
+        const farmersCount = stats?.farmers || 0
+        const driversCount = stats?.drivers || 0
+        const ownersCount = stats?.equipment_owners || 0
+        const buyersCount = stats?.buyers || 0
+
+        const userSegments = [
+          { label: 'Farmers', count: farmersCount, color: '#10b981', hoverColor: '#059669' },
+          { label: 'Drivers', count: driversCount, color: '#f59e0b', hoverColor: '#d97706' },
+          { label: 'Equipment Owners', count: ownersCount, color: '#3b82f6', hoverColor: '#2563eb' },
+          { label: 'Buyers', count: buyersCount, color: '#8b5cf6', hoverColor: '#7c3aed' },
+        ].filter(s => s.count > 0)
+
+        const activeTotal = userSegments.reduce((sum, s) => sum + s.count, 0) || 1
+
+        let accumulatedAngle = 0
+        const pieSlices = userSegments.map((seg) => {
+          const percentage = ((seg.count / activeTotal) * 100).toFixed(1)
+          const angle = (seg.count / activeTotal) * 360
+          
+          const r = 70
+          const cx = 100
+          const cy = 100
+          
+          const startRad = (accumulatedAngle - 90) * Math.PI / 180
+          const endRad = (accumulatedAngle + angle - 90) * Math.PI / 180
+          
+          const x1 = cx + r * Math.cos(startRad)
+          const y1 = cy + r * Math.sin(startRad)
+          const x2 = cx + r * Math.cos(endRad)
+          const y2 = cy + r * Math.sin(endRad)
+          
+          const largeArcFlag = angle > 180 ? 1 : 0
+          
+          const pathData = angle >= 359.9
+            ? `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx - 0.01} ${cy - r} Z`
+            : `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`
+          
+          const sliceInfo = {
+            ...seg,
+            pathData,
+            percentage,
+            startAngle: accumulatedAngle,
+            endAngle: accumulatedAngle + angle
+          }
+          
+          accumulatedAngle += angle
+          return sliceInfo
+        })
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Revenue Line Chart */}
+            <Card className="p-6 lg:col-span-2 space-y-4 relative overflow-visible">
+              <div>
+                <h3 className="font-bold text-lg text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
+                  <TrendingUp size={18} className="text-emerald-500" />
+                  Live Platform Revenue (Past 30 Days)
+                </h3>
+                <p className="text-xs text-neutral-500">Live successful payments timeline updated in real-time</p>
+              </div>
+
+              <div className="relative h-60 w-full mt-4" onMouseLeave={() => setHoveredDataPoint(null)}>
+                <svg
+                  viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                  className="w-full h-full overflow-visible"
+                  onMouseMove={(e) => {
+                    if (!points.length) return
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    const x = e.clientX - rect.left
+                    const svgX = (x / rect.width) * chartWidth
+                    
+                    let closest = points[0]
+                    let minDiff = Math.abs(points[0].x - svgX)
+                    for (let i = 1; i < points.length; i++) {
+                      const diff = Math.abs(points[i].x - svgX)
+                      if (diff < minDiff) {
+                        minDiff = diff
+                        closest = points[i]
+                      }
+                    }
+                    setHoveredDataPoint(closest)
+                  }}
+                >
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Grid Lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+                    const y = padding.top + ratio * (chartHeight - padding.top - padding.bottom)
+                    const val = Math.round(maxRevenue - ratio * maxRevenue)
+                    return (
+                      <g key={ratio} className="opacity-40">
+                        <line
+                          x1={padding.left}
+                          y1={y}
+                          x2={chartWidth - padding.right}
+                          y2={y}
+                          stroke="currentColor"
+                          strokeWidth={1}
+                          strokeDasharray="4,4"
+                          className="text-neutral-200 dark:text-dark-border"
+                        />
+                        <text
+                          x={padding.left - 10}
+                          y={y + 4}
+                          textAnchor="end"
+                          className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 fill-current"
+                        >
+                          ₹{val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}
+                        </text>
+                      </g>
+                    )
+                  })}
+
+                  {/* Chart Line and Area */}
+                  {points.length > 1 && (
+                    <>
+                      <path d={areaPath} fill="url(#chartGradient)" />
+                      <path d={linePath} fill="none" stroke="#10b981" strokeWidth={3} strokeLinecap="round" />
+                    </>
+                  )}
+
+                  {/* Circles */}
+                  {points.map((p, i) => (
+                    <circle
+                      key={i}
+                      cx={p.x}
+                      cy={p.y}
+                      r={hoveredDataPoint?.data?.date === p.data.date ? 6 : 3}
+                      fill={hoveredDataPoint?.data?.date === p.data.date ? '#10b981' : '#34d399'}
+                      stroke={hoveredDataPoint?.data?.date === p.data.date ? '#ffffff' : 'none'}
+                      strokeWidth={2}
+                      className="transition-all duration-150"
+                    />
+                  ))}
+
+                  {/* Guide vertical line */}
+                  {hoveredDataPoint && (
+                    <line
+                      x1={hoveredDataPoint.x}
+                      y1={padding.top}
+                      x2={hoveredDataPoint.x}
+                      y2={chartHeight - padding.bottom}
+                      stroke="#10b981"
+                      strokeWidth={1.5}
+                      strokeDasharray="2,2"
+                    />
+                  )}
+
+                  {/* X Axis Label */}
+                  {points.filter((_, idx) => idx % Math.max(Math.round(points.length / 5), 1) === 0).map((p, i) => (
+                    <text
+                      key={i}
+                      x={p.x}
+                      y={chartHeight - 6}
+                      textAnchor="middle"
+                      className="text-[9px] font-semibold text-neutral-400 dark:text-neutral-500 fill-current"
+                    >
+                      {p.data.date.split('-').slice(1).join('/')}
+                    </text>
+                  ))}
+                </svg>
+
+                {/* Tooltip */}
+                {hoveredDataPoint && (
+                  <div
+                    className="absolute bg-white/95 dark:bg-dark-card/95 border border-neutral-200 dark:border-dark-border p-3 rounded-2xl shadow-xl z-20 pointer-events-none text-xs space-y-1.5 backdrop-blur-md"
+                    style={{
+                      left: `${(hoveredDataPoint.x / chartWidth) * 100}%`,
+                      top: `${(hoveredDataPoint.y / chartHeight) * 100 - 35}%`,
+                      transform: 'translate(-50%, -100%)'
+                    }}
+                  >
+                    <p className="font-bold text-neutral-800 dark:text-white border-b border-neutral-100 dark:border-dark-border pb-1">
+                      {new Date(hoveredDataPoint.data.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                    <div className="flex items-center gap-4 justify-between">
+                      <span className="text-neutral-500">Revenue:</span>
+                      <span className="font-extrabold text-emerald-600 dark:text-emerald-400">₹{hoveredDataPoint.data.revenue.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-4 justify-between">
+                      <span className="text-neutral-500">Bookings:</span>
+                      <span className="font-bold text-neutral-800 dark:text-neutral-200">{hoveredDataPoint.data.bookings} runs</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Pie Chart: User Base breakdown */}
+            <Card className="p-6 space-y-4 flex flex-col justify-between">
+              <div>
+                <h3 className="font-bold text-lg text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
+                  <Users size={18} className="text-primary-500" />
+                  User base Distribution
+                </h3>
+                <p className="text-xs text-neutral-500">Live platform accounts role breakdown</p>
+              </div>
+
+              <div className="relative flex-1 flex flex-col items-center justify-center my-4">
+                <svg viewBox="0 0 200 200" className="w-40 h-40 overflow-visible">
+                  {pieSlices.map((slice, i) => {
+                    const isHovered = hoveredSlice?.label === slice.label
+                    return (
+                      <path
+                        key={i}
+                        d={slice.pathData}
+                        fill={isHovered ? slice.hoverColor : slice.color}
+                        className="transition-all duration-300 origin-[100px_100px] cursor-pointer"
+                        style={{
+                          transform: isHovered ? 'scale(1.05)' : 'scale(1)'
+                        }}
+                        onMouseEnter={() => setHoveredSlice(slice)}
+                        onMouseLeave={() => setHoveredSlice(null)}
+                      />
+                    )
+                  })}
+                </svg>
+
+                {hoveredSlice && (
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/95 dark:bg-dark-card/95 border border-neutral-150 dark:border-dark-border py-2 px-3.5 rounded-2xl shadow-xl z-20 pointer-events-none text-center backdrop-blur-md">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">{hoveredSlice.label}</p>
+                    <p className="text-lg font-black mt-0.5 text-neutral-800 dark:text-white">{hoveredSlice.count}</p>
+                    <p className="text-xs text-primary-500 font-semibold">{hoveredSlice.percentage}%</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Legends */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {pieSlices.map((slice, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-2 p-1.5 rounded-xl border border-transparent transition-all ${
+                      hoveredSlice?.label === slice.label
+                        ? 'bg-neutral-100 dark:bg-dark-border/40 border-neutral-200 dark:border-dark-border'
+                        : ''
+                    }`}
+                    onMouseEnter={() => setHoveredSlice(slice)}
+                    onMouseLeave={() => setHoveredSlice(null)}
+                  >
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: slice.color }} />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-neutral-700 dark:text-neutral-300 truncate">{slice.label}</p>
+                      <p className="text-[10px] text-neutral-400">{slice.count} ({slice.percentage}%)</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )
+      })()}
+
       {/* Main Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: What Farmers are Selling */}
@@ -490,6 +818,101 @@ export default function AdminDashboard() {
           </AnimatePresence>
         </Card>
       </div>
+
+      {/* Support Requests Management Desk */}
+      <Card className="p-6 mt-6 space-y-4">
+        <div>
+          <h3 className="font-bold text-lg text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
+            <HelpCircle size={20} className="text-primary-500" />
+            Support Help Desk Tickets
+          </h3>
+          <p className="text-xs text-neutral-500">Live requests from farmers, drivers, and other users submitted via support desk</p>
+        </div>
+
+        <div className="overflow-x-auto border border-neutral-150 dark:border-dark-border rounded-xl">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="bg-neutral-50 dark:bg-dark-card border-b border-neutral-150 dark:border-dark-border text-neutral-500 font-semibold">
+                <th className="p-3">User Details</th>
+                <th className="p-3">Category</th>
+                <th className="p-3">Subject</th>
+                <th className="p-3">Message</th>
+                <th className="p-3">Date</th>
+                <th className="p-3 text-center">Status</th>
+                <th className="p-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-150 dark:divide-dark-border text-neutral-700 dark:text-neutral-300">
+              {supportRequests.length > 0 ? (
+                supportRequests.map((req) => (
+                  <tr key={req.id} className="hover:bg-neutral-50/50 dark:hover:bg-dark-border/20 transition-colors">
+                    <td className="p-3">
+                      <p className="font-bold text-neutral-900 dark:text-white">{req.name}</p>
+                      <p className="text-[11px] text-neutral-400 font-mono">{req.email}</p>
+                    </td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-dark-border text-neutral-600 dark:text-neutral-300 text-xs font-medium">
+                        {req.category}
+                      </span>
+                    </td>
+                    <td className="p-3 font-semibold text-neutral-800 dark:text-neutral-100">
+                      {req.subject}
+                    </td>
+                    <td className="p-3 text-xs max-w-xs break-words whitespace-pre-wrap text-neutral-500 dark:text-neutral-400">
+                      {req.message}
+                    </td>
+                    <td className="p-3 text-xs text-neutral-400 whitespace-nowrap">
+                      {new Date(req.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                    </td>
+                    <td className="p-3 text-center">
+                      <Badge
+                        variant={req.status === 'resolved' ? 'success' : 'warning'}
+                        size="sm"
+                      >
+                        {req.status}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-center">
+                      {req.status === 'pending' ? (
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          onClick={() => handleResolveSupport(req.id)}
+                          disabled={resolvingId === req.id}
+                          className="px-2 py-1 flex items-center gap-1 mx-auto hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500"
+                        >
+                          {resolvingId === req.id ? (
+                            <Spinner size="xs" />
+                          ) : (
+                            <>
+                              <CheckCircle size={12} />
+                              Resolve
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <span className="text-[11px] text-emerald-500 font-semibold flex items-center justify-center gap-1">
+                          <CheckCircle size={12} />
+                          Resolved
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-neutral-400 dark:text-neutral-500">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Inbox size={28} className="text-neutral-300" />
+                      <p className="text-sm">No support requests or help tickets found</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </motion.div>
   )
 }

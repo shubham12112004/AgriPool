@@ -1,4 +1,5 @@
 import apiClient from './api'
+import analyticsService from './analyticsService'
 
 export const authService = {
   login: (email, password, turnstileToken) =>
@@ -160,6 +161,12 @@ export const adminService = {
   broadcastNotification: (data) => apiClient.post('/admin/broadcast-notification', data),
 }
 
+export const supportService = {
+  submitRequest: (data) => apiClient.post('/support/submit', data),
+  getRequests: () => apiClient.get('/admin/support-requests'),
+  resolveRequest: (id) => apiClient.put(`/admin/support-requests/${id}/resolve`),
+}
+
 export const authProfileService = {
   updateRole: (role) => apiClient.patch('/user/role', { role }),
 }
@@ -177,3 +184,5 @@ export const notificationService = {
   deleteNotification: (notificationId) => 
     apiClient.delete(`/notifications/${notificationId}`),
 }
+
+export { analyticsService }
