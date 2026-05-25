@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Package, Heart, TrendingUp } from 'lucide-react'
@@ -7,6 +7,7 @@ import { translateStatLabel } from './FarmerDashboard'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
 import { Button, Card } from '../../components/ui'
+import { dashboardService } from '../../services'
 
 const PRODUCTS = [
   { id: 1, name: 'Organic Wheat', farm: 'Green Valley', price: 2800, unit: 'quintal' },
@@ -15,6 +16,25 @@ const PRODUCTS = [
 
 export default function BuyerDashboard() {
   const { t } = useLanguage()
+  const [stats, setStats] = useState([])
+
+  useEffect(() => {
+    dashboardService
+      .getStats()
+      .then((res) => setStats(res.stats || []))
+      .catch(() => {})
+  }, [])
+
+  const displayStats = stats.length
+    ? stats
+    : [
+        { label: 'Orders', value: '0', trend: '—' },
+        { label: 'Saved items', value: '8', trend: '—' },
+        { label: 'Spent (month)', value: '₹0', trend: '—' },
+        { label: 'Active carts', value: '1', trend: '—' },
+      ]
+
+  const ICONS = [Package, Heart, TrendingUp, ShoppingBag]
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
@@ -29,10 +49,15 @@ export default function BuyerDashboard() {
       />
 
       <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label={translateStatLabel('Orders', t)} value="12" icon={Package} trend="+2" />
-        <StatCard label={translateStatLabel('Saved items', t)} value="8" icon={Heart} />
-        <StatCard label={translateStatLabel('Spent (month)', t)} value="₹15,400" icon={TrendingUp} />
-        <StatCard label={translateStatLabel('Active carts', t)} value="1" icon={ShoppingBag} />
+        {displayStats.map((s, i) => (
+          <StatCard
+            key={s.label}
+            label={translateStatLabel(s.label, t)}
+            value={s.value}
+            icon={ICONS[i]}
+            trend={s.trend !== '—' ? s.trend : undefined}
+          />
+        ))}
       </motion.div>
 
       <Card className="p-5">

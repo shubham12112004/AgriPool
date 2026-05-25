@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { DollarSign, Tractor, Calendar, Plus } from 'lucide-react'
@@ -7,6 +7,7 @@ import { translateStatLabel } from './FarmerDashboard'
 import StatCard from '../../components/shared/StatCard'
 import PageHeader from '../../components/shared/PageHeader'
 import { Button, Card, Badge } from '../../components/ui'
+import { dashboardService } from '../../services'
 
 const EQUIPMENT = [
   { id: 1, name: 'Mahindra Tractor 575', rate: '₹800/day', status: 'Available' },
@@ -15,6 +16,24 @@ const EQUIPMENT = [
 
 export default function EquipmentOwnerDashboard() {
   const { t } = useLanguage()
+  const [stats, setStats] = useState([])
+
+  useEffect(() => {
+    dashboardService
+      .getStats()
+      .then((res) => setStats(res.stats || []))
+      .catch(() => {})
+  }, [])
+
+  const displayStats = stats.length
+    ? stats
+    : [
+        { label: 'Monthly earnings', value: '₹0', trend: '—' },
+        { label: 'Listed items', value: '5', trend: '—' },
+        { label: 'Pending rentals', value: '0', trend: '—' },
+      ]
+
+  const ICONS = [DollarSign, Tractor, Calendar]
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
@@ -31,9 +50,16 @@ export default function EquipmentOwnerDashboard() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label={translateStatLabel('Monthly earnings', t)} value="₹42,000" icon={DollarSign} trend="+8%" />
-        <StatCard label={translateStatLabel('Listed items', t)} value="5" icon={Tractor} />
-        <StatCard label={translateStatLabel('Pending rentals', t)} value="3" icon={Calendar} trendVariant="warning" trend="3 new" />
+        {displayStats.map((s, i) => (
+          <StatCard
+            key={s.label}
+            label={translateStatLabel(s.label, t)}
+            value={s.value}
+            icon={ICONS[i]}
+            trend={s.trend !== '—' ? s.trend : undefined}
+            trendVariant={i === 2 && s.value !== '0' ? 'warning' : undefined}
+          />
+        ))}
       </div>
 
       <Card className="p-5">

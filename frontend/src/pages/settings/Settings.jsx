@@ -77,10 +77,10 @@ export default function Settings() {
         email: profile.email,
         phone: profile.phone,
       })
-      if (res.data && res.data.user) {
+      if (res && res.user) {
         setAuth({
-          user: res.data.user,
-          role: res.data.user.role,
+          user: res.user,
+          role: res.user.role,
         })
         toast.success('Profile updated successfully')
       }
@@ -106,10 +106,10 @@ export default function Settings() {
 
     try {
       const res = await userService.uploadAvatar(user.id, formData)
-      if (res.data && res.data.user) {
+      if (res && res.user) {
         setAuth({
-          user: res.data.user,
-          role: res.data.user.role,
+          user: res.user,
+          role: res.user.role,
         })
         toast.success('Profile picture updated!')
       }

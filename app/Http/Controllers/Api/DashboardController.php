@@ -21,12 +21,16 @@ class DashboardController extends Controller
                 ->count();
             $pendingRequests = Delivery::where('status', 'pending')->whereNull('driver_id')->count();
             $completed = Delivery::where('driver_id', $user->id)->where('status', 'completed')->count();
-            $earnings = Payment::where('user_id', $user->id)->where('status', 'success')->sum('amount');
+            
+            // Query driver's earnings from payments associated with deliveries driven by this driver
+            $earnings = Payment::whereHas('delivery', function ($query) use ($user) {
+                $query->where('driver_id', $user->id);
+            })->where('status', 'success')->sum('amount');
 
             return response()->json([
                 'role' => $role,
                 'stats' => [
-                    ['label' => 'Earnings (month)', 'value' => '₹'.number_format($earnings ?: 18200), 'trend' => '+18%'],
+                    ['label' => 'Earnings (month)', 'value' => '₹'.number_format($earnings), 'trend' => '+18%'],
                     ['label' => 'Active trips', 'value' => (string) max($active, 0), 'trend' => 'Live'],
                     ['label' => 'Rating', 'value' => '4.9', 'trend' => '⭐'],
                     ['label' => 'Jobs done', 'value' => (string) ($completed ?: 0), 'trend' => '+3'],
@@ -36,6 +40,43 @@ class DashboardController extends Controller
             ]);
         }
 
+        if ($role === 'buyer') {
+            $spent = Payment::where('user_id', $user->id)->where('status', 'success')->sum('amount');
+            $ordersCount = Delivery::where('farmer_id', $user->id)->count();
+
+            return response()->json([
+                'role' => $role,
+                'stats' => [
+                    ['label' => 'Orders', 'value' => (string) $ordersCount, 'trend' => '+2'],
+                    ['label' => 'Saved items', 'value' => '8', 'trend' => '—'],
+                    ['label' => 'Spent (month)', 'value' => '₹'.number_format($spent), 'trend' => '+5%'],
+                    ['label' => 'Active carts', 'value' => '1', 'trend' => '—'],
+                ],
+            ]);
+        }
+
+        if ($role === 'equipment_owner' || $role === 'equipment-owner') {
+            $earnings = Payment::whereHas('delivery', function ($query) use ($user) {
+                $query->where('driver_id', $user->id);
+            })->where('status', 'success')->sum('amount');
+            
+            $listedItems = 5; 
+            
+            $pendingRentals = Delivery::where('status', 'pending')
+                ->where('type', 'equipment')
+                ->count();
+
+            return response()->json([
+                'role' => $role,
+                'stats' => [
+                    ['label' => 'Monthly earnings', 'value' => '₹'.number_format($earnings), 'trend' => '+8%'],
+                    ['label' => 'Listed items', 'value' => (string) $listedItems, 'trend' => '—'],
+                    ['label' => 'Pending rentals', 'value' => (string) $pendingRentals, 'trend' => $pendingRentals . ' new'],
+                ],
+            ]);
+        }
+
+        // Default: farmer
         $active = Delivery::where('farmer_id', $user->id)
             ->whereIn('status', ['pending', 'assigned', 'in_transit'])
             ->count();
@@ -45,7 +86,7 @@ class DashboardController extends Controller
         return response()->json([
             'role' => $role,
             'stats' => [
-                ['label' => 'Total spent', 'value' => '₹'.number_format($spent ?: 24500), 'trend' => '+12%'],
+                ['label' => 'Total spent', 'value' => '₹'.number_format($spent), 'trend' => '+12%'],
                 ['label' => 'Active bookings', 'value' => (string) $active, 'trend' => $active > 0 ? "$active pending" : 'None'],
                 ['label' => 'Rating', 'value' => '4.8', 'trend' => '⭐'],
                 ['label' => 'Completed', 'value' => (string) ($completed ?: 0), 'trend' => '+5'],

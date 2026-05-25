@@ -6,11 +6,11 @@ import Sidebar from '../components/layout/Sidebar'
 import DashboardHeader from '../components/layout/DashboardHeader'
 
 const PAGE_TITLES = {
-  '/dashboard/farmer': { title: 'dashboard.farmer.title', subtitle: 'dashboard.farmer.subtitle' },
-  '/dashboard/driver': { title: 'dashboard.driver.title', subtitle: 'dashboard.driver.subtitle' },
-  '/dashboard/equipment-owner': { title: 'dashboard.equipment_owner.title', subtitle: 'dashboard.equipment_owner.subtitle' },
-  '/dashboard/buyer': { title: 'dashboard.buyer.title', subtitle: 'dashboard.buyer.subtitle' },
-  '/dashboard/admin': { title: 'dashboard.admin.title', subtitle: 'dashboard.admin.subtitle' },
+  '/dashboard/farmer': { title: 'nav.dashboard', subtitle: '' },
+  '/dashboard/driver': { title: 'nav.dashboard', subtitle: '' },
+  '/dashboard/equipment-owner': { title: 'nav.dashboard', subtitle: '' },
+  '/dashboard/buyer': { title: 'nav.dashboard', subtitle: '' },
+  '/dashboard/admin': { title: 'nav.dashboard', subtitle: '' },
   '/bookings': { title: 'nav.bookings', subtitle: 'dashboard.bookings.subtitle' },
   '/messages': { title: 'nav.messages', subtitle: 'dashboard.messages.subtitle' },
   '/map': { title: 'nav.map', subtitle: 'dashboard.map.subtitle' },

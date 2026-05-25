@@ -126,10 +126,10 @@ export default function Profile() {
         phone: editForm.phone,
       })
 
-      if (res.data && res.data.user) {
+      if (res && res.user) {
         setAuth({
-          user: res.data.user,
-          role: res.data.user.role,
+          user: res.user,
+          role: res.user.role,
         })
       }
 
@@ -166,10 +166,10 @@ export default function Profile() {
 
     try {
       const res = await userService.uploadAvatar(user.id, formData)
-      if (res.data && res.data.user) {
+      if (res && res.user) {
         setAuth({
-          user: res.data.user,
-          role: res.data.user.role,
+          user: res.user,
+          role: res.user.role,
         })
         toast.success('Profile picture updated!')
       }

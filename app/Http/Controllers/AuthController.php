@@ -133,6 +133,7 @@ class AuthController extends Controller
             $redirectUrl = url('/auth/google/callback');
             return Socialite::driver('google')
                 ->redirectUrl($redirectUrl)
+                ->with(['prompt' => 'select_account'])
                 ->redirect();
         } catch (Throwable $e) {
             Log::error('Google OAuth redirect failed: ' . $e->getMessage());
