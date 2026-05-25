@@ -25,8 +25,8 @@ export default function AdminNotifications() {
         body: body.trim()
       })
 
-      if (res.data?.success) {
-        toast.success(res.data.message || 'Notification broadcasted successfully!')
+      if (res?.success) {
+        toast.success(res.message || 'Notification broadcasted successfully!')
         setTitle('')
         setBody('')
       } else {

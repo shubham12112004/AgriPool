@@ -34,9 +34,9 @@ export default function AdminDashboard() {
     try {
       setLoading(true)
       const res = await adminService.getDashboardData()
-      if (res.data?.success) {
-        setStats(res.data.stats)
-        setCrops(res.data.crops || [])
+      if (res?.success) {
+        setStats(res.stats)
+        setCrops(res.crops || [])
         if (showToast) {
           toast.success('Dashboard metrics refreshed')
         }
@@ -53,8 +53,8 @@ export default function AdminDashboard() {
     try {
       setAiLoading(true)
       const res = await adminService.getAiAdvice()
-      if (res.data?.success) {
-        setAiAdvice(res.data.advice)
+      if (res?.success) {
+        setAiAdvice(res.advice)
         toast.success('AgriAI strategy updated')
       }
     } catch (err) {
