@@ -77,7 +77,7 @@ export default function Login() {
       const token = res?.token
       const user = res?.user
       if (token) {
-        localStorage.setItem('auth_token', token)
+        sessionStorage.setItem('auth_token', token)
         if (rememberMe) {
           localStorage.setItem('agripool_remembered_email', formData.email)
         } else {

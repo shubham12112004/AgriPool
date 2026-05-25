@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { ROLES } from '../config/roles'
 
 export const useAuthStore = create(
@@ -16,12 +16,13 @@ export const useAuthStore = create(
         }),
       setRole: (role) => set({ role }),
       logout: () => {
-        localStorage.removeItem('auth_token')
+        sessionStorage.removeItem('auth_token')
         set({ user: null, token: null, role: null })
       },
     }),
     {
       name: 'agripool-auth',
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         user: state.user,
         token: state.token,

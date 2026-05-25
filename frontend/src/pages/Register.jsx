@@ -94,7 +94,7 @@ export default function Register() {
       })
       const token = res?.token
       const user = res?.user
-      if (token) localStorage.setItem('auth_token', token)
+      if (token) sessionStorage.setItem('auth_token', token)
       setAuth({ user, token, role: user?.role })
       toast.success('Account created! Choose your role.')
       navigate('/role-selection')

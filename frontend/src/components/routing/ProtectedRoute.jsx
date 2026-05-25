@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore'
 export default function ProtectedRoute({ children }) {
   const { token, user } = useAuthStore()
   const location = useLocation()
-  const hasAuth = Boolean(token || user || localStorage.getItem('auth_token'))
+  const hasAuth = Boolean(token || user || sessionStorage.getItem('auth_token'))
 
   if (!hasAuth) {
     return <Navigate to="/login" state={{ from: location }} replace />

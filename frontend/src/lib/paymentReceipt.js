@@ -47,7 +47,7 @@ export function loadLastPayment() {
 }
 
 export function receiptDownloadUrl(paymentId) {
-  const token = localStorage.getItem('auth_token')
+  const token = sessionStorage.getItem('auth_token')
   return `${API_BASE}/payments/${paymentId}/receipt?download=1&token=${encodeURIComponent(token || '')}`
 }
 
@@ -106,7 +106,7 @@ export function downloadReceipt(payment, userName) {
 }
 
 export async function downloadReceiptFromApi(paymentId) {
-  const token = localStorage.getItem('auth_token')
+  const token = sessionStorage.getItem('auth_token')
   const res = await fetch(`${API_BASE}/payments/${paymentId}/receipt?download=1`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })

@@ -33,8 +33,8 @@ export const authService = {
     apiClient.post('/auth/google', { token }),
   
   logout: () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('user')
+    sessionStorage.removeItem('auth_token')
+    sessionStorage.removeItem('user')
   },
   
   getCurrentUser: () => 
