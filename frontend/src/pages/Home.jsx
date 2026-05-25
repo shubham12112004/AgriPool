@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Footer from '../components/Footer'
 import TestimonialsCarousel from '../components/home/TestimonialsCarousel'
@@ -15,6 +15,17 @@ import {
   FlaskConical, Crosshair, ChevronRight, MessageCircle, Bot
 } from 'lucide-react'
 
+// Rotating hero phrases — the highlighted part changes every 2.8s
+const HERO_PHRASES = [
+  { highlight: 'Smart Agriculture', color: 'from-emerald-400 to-green-300' },
+  { highlight: 'Real‑Time Data', color: 'from-sky-400 to-cyan-300' },
+  { highlight: 'Zero Middlemen', color: 'from-amber-400 to-yellow-300' },
+  { highlight: 'Lower Costs', color: 'from-rose-400 to-pink-300' },
+  { highlight: 'Better Yields', color: 'from-violet-400 to-purple-300' },
+  { highlight: 'Modern Machines', color: 'from-teal-400 to-emerald-300' },
+  { highlight: 'Connected Markets', color: 'from-blue-400 to-indigo-300' },
+]
+
 export default function Home() {
   const { t } = useLanguage()
   const { isDark } = useTheme()
@@ -26,6 +37,22 @@ export default function Home() {
     { role: 'assistant', body: 'Hello! I can help you with crop choices, disease resolution, weather updates, and much more.' }
   ])
   const [aiLoading, setAiLoading] = useState(false)
+
+  // Rotating headline state
+  const [phraseIndex, setPhraseIndex] = useState(0)
+  const [phraseVisible, setPhraseVisible] = useState(true)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Fade out
+      setPhraseVisible(false)
+      setTimeout(() => {
+        setPhraseIndex(i => (i + 1) % HERO_PHRASES.length)
+        setPhraseVisible(true)
+      }, 400)
+    }, 2800)
+    return () => clearInterval(interval)
+  }, [])
+  const currentPhrase = HERO_PHRASES[phraseIndex]
 
   const handleAiSubmit = async (e) => {
     e.preventDefault()
@@ -233,8 +260,24 @@ export default function Home() {
                 </span>
               </motion.div>
               
-              <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-white">
-                {t('home.hero.title')}
+              <motion.h1
+                variants={itemVariants}
+                className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-white"
+              >
+                Empowering India's<br />
+                Farmers with{' '}
+                <span
+                  className={`inline-block bg-gradient-to-r ${
+                    currentPhrase.color
+                  } bg-clip-text text-transparent transition-all duration-400 ${
+                    phraseVisible
+                      ? 'opacity-100 translate-y-0'
+                      : 'opacity-0 -translate-y-3'
+                  }`}
+                  style={{ transition: 'opacity 0.35s ease, transform 0.35s ease' }}
+                >
+                  {currentPhrase.highlight}
+                </span>
               </motion.h1>
               
               <motion.p variants={itemVariants} className="text-base md:text-lg mb-10 max-w-xl text-neutral-300 leading-relaxed">

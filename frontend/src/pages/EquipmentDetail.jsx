@@ -1,18 +1,24 @@
-import React, { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import React, { useState, useMemo } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { useTheme } from '../hooks/useTheme'
 import { Button, Card, Badge, Input, Alert } from '../components/ui'
 import { 
   Star, MapPin, Calendar, Clock, DollarSign, Heart, Share2, 
   ChevronLeft, ChevronRight, CheckCircle, AlertCircle 
 } from 'lucide-react'
+import { useAuthStore } from '../store/authStore'
+import { bookingService } from '../services'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
   const { isDark } = useTheme()
+  const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeImageIdx, setActiveImageIdx] = useState(0)
+  const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingData, setBookingData] = useState({
     startDate: '',
     endDate: '',
@@ -295,6 +301,79 @@ export default function EquipmentDetail() {
 
   // Find matching equipment by ID or fall back to ID 1
   const equipment = equipmentList.find((item) => item.id === parseInt(id)) || equipmentList[0]
+
+  // Extract numeric daily price from e.g. "₹500/day" or "₹1,200/day"
+  const dailyPrice = useMemo(() => {
+    const raw = equipment.price.replace(/[^0-9,]/g, '').replace(/,/g, '')
+    return parseInt(raw) || 500
+  }, [equipment.price])
+
+  // Calculate number of days between start and end date
+  const numDays = useMemo(() => {
+    if (!bookingData.startDate || !bookingData.endDate) return 1
+    const diff = new Date(bookingData.endDate) - new Date(bookingData.startDate)
+    const days = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+    return days
+  }, [bookingData.startDate, bookingData.endDate])
+
+  const rentalCost = dailyPrice * numDays * bookingData.quantity
+  const serviceFee = Math.round(rentalCost * 0.1) // 10% service fee
+  const totalAmount = rentalCost + serviceFee
+
+  // Handle Book Now
+  const handleBookNow = async () => {
+    if (!user) {
+      toast.error('Please sign in to book equipment')
+      navigate('/login')
+      return
+    }
+    if (!bookingData.startDate || !bookingData.endDate) {
+      toast.error('Please select start and end dates')
+      return
+    }
+    if (new Date(bookingData.endDate) <= new Date(bookingData.startDate)) {
+      toast.error('End date must be after start date')
+      return
+    }
+
+    setBookingLoading(true)
+    try {
+      const res = await bookingService.createBooking({
+        type: 'equipment',
+        title: `${equipment.name} Rental`,
+        pickup_location: equipment.location,
+        dropoff_location: equipment.location,
+        date: bookingData.startDate,
+        time: '08:00',
+        notes: `Rental from ${bookingData.startDate} to ${bookingData.endDate}. Quantity: ${bookingData.quantity}`,
+        amount: totalAmount,
+        equipment_id: equipment.id,
+        start_date: bookingData.startDate,
+        end_date: bookingData.endDate,
+        quantity: bookingData.quantity,
+      })
+      const booking = res?.data || res
+      toast.success('Booking created! Proceeding to payment...')
+      navigate(
+        `/payments/checkout?booking=${booking?.id || 'new'}&amount=${totalAmount}&desc=${encodeURIComponent(equipment.name + ' Rental')}`
+      )
+    } catch (err) {
+      // If API fails (e.g. not authenticated properly), still allow checkout with params
+      const msg = err?.message || ''
+      if (msg.toLowerCase().includes('unauthenticated') || msg.toLowerCase().includes('401')) {
+        toast.error('Session expired. Please log in again.')
+        navigate('/login')
+      } else {
+        // Fallback: go directly to checkout without a booking ID
+        toast('Proceeding to checkout...', { icon: '💳' })
+        navigate(
+          `/payments/checkout?amount=${totalAmount}&desc=${encodeURIComponent(equipment.name + ' Rental (' + numDays + ' days)')}`
+        )
+      }
+    } finally {
+      setBookingLoading(false)
+    }
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -604,15 +683,17 @@ export default function EquipmentDetail() {
               <div className={`p-4 rounded-lg mb-6 ${isDark ? 'bg-dark-border' : 'bg-neutral-100'}`}>
                 <div className="space-y-2 text-sm mb-3">
                   <div className="flex justify-between">
-                    <span className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>3 days × ₹500</span>
+                    <span className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
+                      {numDays} day{numDays !== 1 ? 's' : ''} × {equipment.price.split('/')[0]} × qty {bookingData.quantity}
+                    </span>
                     <span className={`font-semibold ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
-                      ₹1,500
+                      ₹{rentalCost.toLocaleString('en-IN')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>Service fee</span>
+                    <span className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>Service fee (10%)</span>
                     <span className={`font-semibold ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
-                      ₹150
+                      ₹{serviceFee.toLocaleString('en-IN')}
                     </span>
                   </div>
                   <div className={`border-t pt-2 flex justify-between ${isDark ? 'border-dark-border' : 'border-neutral-200'}`}>
@@ -620,17 +701,30 @@ export default function EquipmentDetail() {
                       Total
                     </span>
                     <span className={`text-xl font-bold ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
-                      ₹1,650
+                      ₹{totalAmount.toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <Button variant="primary" size="lg" fullWidth className="mb-3">
-                Book Now
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                className="mb-3"
+                loading={bookingLoading}
+                onClick={handleBookNow}
+                disabled={!bookingData.startDate || !bookingData.endDate}
+              >
+                {!bookingData.startDate || !bookingData.endDate ? 'Select dates to book' : `Book Now — ₹${totalAmount.toLocaleString('en-IN')}`}
               </Button>
-              <Button variant="secondary" size="lg" fullWidth>
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={() => window.open(`mailto:?subject=Inquiry about ${equipment.name}&body=Hi ${equipment.owner.name}, I am interested in renting your ${equipment.name} listed on AgriPool.`)}
+              >
                 Contact Owner
               </Button>
 

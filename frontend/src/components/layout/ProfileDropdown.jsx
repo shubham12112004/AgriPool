@@ -16,11 +16,21 @@ import {
   LayoutDashboard,
   Receipt,
   Bookmark,
+  Truck,
+  Tractor,
+  ShoppingBag,
+  Package,
+  TrendingUp,
+  Heart,
+  DollarSign,
+  BookOpen,
 } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
+import { useLanguage } from '../../hooks/useLanguage'
 import { useAuthStore, getDashboardPathForRole } from '../../store/authStore'
-import { authService } from '../../services'
+import { authService, dashboardService } from '../../services'
 import { getAvatarUrl } from '../../lib/utils'
+import { translateStatLabel } from '../../pages/dashboard/FarmerDashboard'
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -189,9 +199,12 @@ function ProfilePanel({ open, onClose, isDark, children }) {
 
 export default function ProfileDropdown() {
   const { isDark } = useTheme()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const { user, role, logout } = useAuthStore()
+  const [stats, setStats] = useState([])
+  const [statsLoading, setStatsLoading] = useState(false)
 
   const name = user?.name || user?.email || 'User'
   const email = user?.email || ''
@@ -199,6 +212,54 @@ export default function ProfileDropdown() {
   const dashboardPath = getDashboardPathForRole(role)
 
   const close = useCallback(() => setOpen(false), [])
+
+  const getIconForLabel = (label) => {
+    const lower = label.toLowerCase()
+    if (lower.includes('spent') || lower.includes('payment')) return CreditCard
+    if (lower.includes('earning')) return DollarSign
+    if (lower.includes('active') || lower.includes('ongoing') || lower.includes('trip')) return Activity
+    if (lower.includes('booking') || lower.includes('rental') || lower.includes('calendar')) return Calendar
+    if (lower.includes('rating')) return Star
+    if (lower.includes('order')) return Package
+    if (lower.includes('saved')) return Heart
+    if (lower.includes('cart')) return ShoppingBag
+    if (lower.includes('listed') || lower.includes('item') || lower.includes('equipment')) return Tractor
+    if (lower.includes('job') || lower.includes('done') || lower.includes('completed')) return Activity
+    return Activity
+  }
+
+  const getFallbackStatsForRole = (r) => {
+    if (r === 'driver') {
+      return [
+        { icon: DollarSign, value: '₹0', label: 'Earnings (month)' },
+        { icon: Activity, value: '0', label: 'Active trips' },
+        { icon: Star, value: '4.9', label: 'Rating' },
+        { icon: Activity, value: '0', label: 'Jobs done' },
+      ]
+    }
+    if (r === 'buyer') {
+      return [
+        { icon: Package, value: '0', label: 'Orders' },
+        { icon: Heart, value: '8', label: 'Saved items' },
+        { icon: CreditCard, value: '₹0', label: 'Spent (month)' },
+        { icon: ShoppingBag, value: '1', label: 'Active carts' },
+      ]
+    }
+    if (r === 'equipment_owner' || r === 'equipment-owner') {
+      return [
+        { icon: DollarSign, value: '₹0', label: 'Monthly earnings' },
+        { icon: Tractor, value: '5', label: 'Listed items' },
+        { icon: Calendar, value: '0', label: 'Pending rentals' },
+      ]
+    }
+    // Default: farmer
+    return [
+      { icon: CreditCard, value: '₹0', label: 'Total spent' },
+      { icon: Calendar, value: '0', label: 'Active bookings' },
+      { icon: Star, value: '4.8', label: 'Rating' },
+      { icon: Activity, value: '0', label: 'Completed' },
+    ]
+  }
 
   // Lock body scroll when panel is open
   useEffect(() => {
@@ -217,6 +278,27 @@ export default function ProfileDropdown() {
     return () => document.removeEventListener('keydown', handler)
   }, [open, close])
 
+  // Fetch stats when panel opens
+  useEffect(() => {
+    if (open) {
+      setStatsLoading(true)
+      dashboardService
+        .getStats()
+        .then((res) => {
+          if (res.stats) {
+            const mapped = res.stats.map((s) => ({
+              label: s.label,
+              value: s.value,
+              icon: getIconForLabel(s.label),
+            }))
+            setStats(mapped)
+          }
+        })
+        .catch(() => {})
+        .finally(() => setStatsLoading(false))
+    }
+  }, [open])
+
   const handleLogout = async () => {
     close()
     try {
@@ -228,13 +310,8 @@ export default function ProfileDropdown() {
     navigate('/login')
   }
 
-  /* ── quick stats (placeholder data) ── */
-  const stats = [
-    { icon: Calendar, value: '12', label: 'Bookings' },
-    { icon: Activity, value: '3', label: 'Active' },
-    { icon: CreditCard, value: '₹8.4k', label: 'Payments' },
-    { icon: Star, value: '4.8', label: 'Rating' },
-  ]
+  /* ── quick stats (dynamic with fallbacks) ── */
+  const displayStats = stats.length ? stats : getFallbackStatsForRole(role)
 
   /* ── quick actions ── */
   const actions = [
@@ -333,8 +410,14 @@ export default function ProfileDropdown() {
           animate="visible"
           className="grid grid-cols-2 gap-2 px-5 pb-4"
         >
-          {stats.map((s) => (
-            <StatCard key={s.label} {...s} isDark={isDark} />
+          {displayStats.map((s) => (
+            <StatCard
+              key={s.label}
+              icon={s.icon}
+              value={s.value}
+              label={translateStatLabel(s.label, t)}
+              isDark={isDark}
+            />
           ))}
         </motion.div>
 
