@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -23,25 +24,6 @@ import { getAvatarUrl } from '../../lib/utils'
 
 /* ── helpers ─────────────────────────────────────────── */
 
-const API_ORIGIN = (() => {
-  const envUrl = import.meta.env.VITE_API_URL
-  if (
-    typeof window !== 'undefined' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
-  ) {
-    return window.location.origin
-  }
-  if (envUrl) {
-    try {
-      return new URL(envUrl).origin
-    } catch {
-      return window.location.origin
-    }
-  }
-  return window.location.origin
-})()
-
 function resolveAvatar(avatar) {
   return getAvatarUrl(avatar)
 }
@@ -51,7 +33,7 @@ function resolveAvatar(avatar) {
 const backdropVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
-  exit: { opacity: 0 },
+  exit: { opacity: 0, transition: { duration: 0.18 } },
 }
 
 const panelVariants = {
@@ -162,6 +144,47 @@ function ActionLink({ to, icon: Icon, label, isDark, onClick }) {
   )
 }
 
+/* ── Portal wrapper — renders outside all stacking contexts ── */
+function ProfilePanel({ open, onClose, isDark, children }) {
+  if (typeof document === 'undefined') return null
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="profile-backdrop"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+          />
+
+          {/* Slide-in Panel */}
+          <motion.aside
+            key="profile-panel"
+            variants={panelVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 9999, width: '100%', maxWidth: 340 }}
+            className={`flex flex-col overflow-y-auto shadow-2xl border-l ${
+              isDark
+                ? 'bg-dark-card/95 backdrop-blur-xl border-dark-border text-neutral-100'
+                : 'bg-white/98 backdrop-blur-xl border-neutral-200 text-neutral-900'
+            }`}
+          >
+            {children}
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  )
+}
+
 /* ── main component ──────────────────────────────────── */
 
 export default function ProfileDropdown() {
@@ -176,6 +199,23 @@ export default function ProfileDropdown() {
   const dashboardPath = getDashboardPathForRole(role)
 
   const close = useCallback(() => setOpen(false), [])
+
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') close() }
+    if (open) document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open, close])
 
   const handleLogout = async () => {
     close()
@@ -224,159 +264,131 @@ export default function ProfileDropdown() {
         <ChevronDown size={16} className="hidden sm:block opacity-60" />
       </motion.button>
 
-      {/* ── Slide-out Panel ── */}
-      <AnimatePresence>
-        {open && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              key="profile-backdrop"
-              variants={backdropVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              onClick={close}
-              className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm"
+      {/* ── Slide-out Panel (rendered in portal on document.body) ── */}
+      <ProfilePanel open={open} onClose={close} isDark={isDark}>
+        {/* ── Close ── */}
+        <div className="flex justify-between items-center p-4 pb-0">
+          <span className="text-xs font-semibold uppercase tracking-widest opacity-40">Account</span>
+          <motion.button
+            type="button"
+            whileHover={{ rotate: 90 }}
+            whileTap={{ scale: 0.85 }}
+            onClick={close}
+            className={`p-2 rounded-xl transition-colors ${
+              isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
+            }`}
+          >
+            <X size={20} />
+          </motion.button>
+        </div>
+
+        {/* ── Profile Header ── */}
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col items-center px-6 pt-2 pb-5"
+        >
+          <motion.div variants={fadeUp} className="relative mb-3">
+            <AvatarImage
+              src={user?.avatar}
+              initials={initials}
+              size={80}
+              ring
             />
+            {/* Online dot */}
+            <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-dark-card" />
+          </motion.div>
 
-            {/* Panel */}
-            <motion.aside
-              key="profile-panel"
-              variants={panelVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className={`fixed top-0 right-0 z-[100] h-full w-full sm:w-[340px] flex flex-col overflow-y-auto shadow-2xl border-l ${
-                isDark
-                  ? 'bg-dark-card/95 backdrop-blur-xl border-dark-border text-neutral-100'
-                  : 'bg-white/95 backdrop-blur-xl border-neutral-200 text-neutral-900'
-              }`}
+          <motion.h2
+            variants={fadeUp}
+            className="text-lg font-bold tracking-tight"
+          >
+            {name}
+          </motion.h2>
+
+          {email && (
+            <motion.p
+              variants={fadeUp}
+              className="text-xs opacity-50 mt-0.5"
             >
-              {/* ── Close ── */}
-              <div className="flex justify-end p-4 pb-0">
-                <motion.button
-                  type="button"
-                  whileHover={{ rotate: 90 }}
-                  whileTap={{ scale: 0.85 }}
-                  onClick={close}
-                  className={`p-2 rounded-xl transition-colors ${
-                    isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
-                  }`}
-                >
-                  <X size={20} />
-                </motion.button>
-              </div>
+              {email}
+            </motion.p>
+          )}
 
-              {/* ── Profile Header ── */}
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-                className="flex flex-col items-center px-6 pb-5"
-              >
-                <motion.div variants={fadeUp} className="relative mb-3">
-                  <AvatarImage
-                    src={user?.avatar}
-                    initials={initials}
-                    size={80}
-                    ring
-                  />
-                  {/* Online dot */}
-                  <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-dark-card" />
-                </motion.div>
+          {role && (
+            <motion.span
+              variants={fadeUp}
+              className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary-500/10 text-primary-500"
+            >
+              {role.replace(/[_-]/g, ' ')}
+            </motion.span>
+          )}
+        </motion.div>
 
-                <motion.h2
-                  variants={fadeUp}
-                  className="text-lg font-bold tracking-tight"
-                >
-                  {name}
-                </motion.h2>
+        {/* ── Quick Stats ── */}
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 gap-2 px-5 pb-4"
+        >
+          {stats.map((s) => (
+            <StatCard key={s.label} {...s} isDark={isDark} />
+          ))}
+        </motion.div>
 
-                {email && (
-                  <motion.p
-                    variants={fadeUp}
-                    className="text-xs opacity-50 mt-0.5"
-                  >
-                    {email}
-                  </motion.p>
-                )}
+        {/* Divider */}
+        <div
+          className={`mx-5 border-t ${
+            isDark ? 'border-dark-border' : 'border-neutral-100'
+          }`}
+        />
 
-                {role && (
-                  <motion.span
-                    variants={fadeUp}
-                    className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary-500/10 text-primary-500"
-                  >
-                    {role.replace(/[_-]/g, ' ')}
-                  </motion.span>
-                )}
-              </motion.div>
+        {/* ── Quick Actions ── */}
+        <motion.nav
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="flex-1 flex flex-col gap-0.5 px-3 py-3"
+        >
+          {actions.map((a) => (
+            <motion.div key={a.to} variants={fadeUp}>
+              <ActionLink {...a} isDark={isDark} onClick={close} />
+            </motion.div>
+          ))}
+        </motion.nav>
 
-              {/* ── Quick Stats ── */}
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-2 gap-2 px-5 pb-4"
-              >
-                {stats.map((s) => (
-                  <StatCard key={s.label} {...s} isDark={isDark} />
-                ))}
-              </motion.div>
+        {/* Divider */}
+        <div
+          className={`mx-5 border-t ${
+            isDark ? 'border-dark-border' : 'border-neutral-100'
+          }`}
+        />
 
-              {/* Divider */}
-              <div
-                className={`mx-5 border-t ${
-                  isDark ? 'border-dark-border' : 'border-neutral-100'
-                }`}
-              />
+        {/* ── Logout ── */}
+        <div className="px-5 py-4">
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleLogout}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors ${
+              isDark
+                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                : 'bg-red-50 text-red-600 hover:bg-red-100'
+            }`}
+          >
+            <LogOut size={17} />
+            Log out
+          </motion.button>
+        </div>
 
-              {/* ── Quick Actions ── */}
-              <motion.nav
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-                className="flex-1 flex flex-col gap-0.5 px-3 py-3"
-              >
-                {actions.map((a) => (
-                  <motion.div key={a.to} variants={fadeUp}>
-                    <ActionLink {...a} isDark={isDark} onClick={close} />
-                  </motion.div>
-                ))}
-              </motion.nav>
-
-              {/* Divider */}
-              <div
-                className={`mx-5 border-t ${
-                  isDark ? 'border-dark-border' : 'border-neutral-100'
-                }`}
-              />
-
-              {/* ── Logout ── */}
-              <div className="px-5 py-4">
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleLogout}
-                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors ${
-                    isDark
-                      ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                      : 'bg-red-50 text-red-600 hover:bg-red-100'
-                  }`}
-                >
-                  <LogOut size={17} />
-                  Log out
-                </motion.button>
-              </div>
-
-              {/* ── Footer ── */}
-              <p className="text-center text-[11px] opacity-30 pb-5 select-none">
-                AgriPool v1.0 · Member since 2024
-              </p>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+        {/* ── Footer ── */}
+        <p className="text-center text-[11px] opacity-30 pb-5 select-none">
+          AgriPool v1.0 · Member since 2024
+        </p>
+      </ProfilePanel>
     </>
   )
 }
