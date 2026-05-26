@@ -125,6 +125,23 @@ export const equipmentService = {
     }),
 }
 
+export const productService = {
+  getProducts: (params) => 
+    apiClient.get('/products', { params }),
+  
+  getProductById: (id) => 
+    apiClient.get(`/products/${id}`),
+  
+  createProduct: (data) => 
+    apiClient.post('/products', data),
+  
+  updateProduct: (id, data) => 
+    apiClient.put(`/products/${id}`, data),
+  
+  deleteProduct: (id) => 
+    apiClient.delete(`/products/${id}`),
+}
+
 export const paymentService = {
   createOrder: (data) => 
     apiClient.post('/payments/create-order', data),

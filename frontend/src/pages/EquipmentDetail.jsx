@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -9,7 +9,8 @@ import {
   ChevronLeft, ChevronRight, CheckCircle, AlertCircle 
 } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
-import { bookingService } from '../services'
+import { bookingService, equipmentService } from '../services'
+import { Spinner } from '../components/ui'
 
 export default function EquipmentDetail() {
   const { id } = useParams()
@@ -19,294 +20,63 @@ export default function EquipmentDetail() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeImageIdx, setActiveImageIdx] = useState(0)
   const [bookingLoading, setBookingLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [equipment, setEquipment] = useState(null)
   const [bookingData, setBookingData] = useState({
     startDate: '',
     endDate: '',
     quantity: 1,
   })
 
-  // Mock equipment database matching BrowseEquipment
-  const equipmentList = [
-    {
-      id: 1,
-      name: 'Tractor - John Deere',
-      category: 'Tractors',
-      price: '₹500/day',
-      rating: 4.8,
-      reviewCount: 156,
-      location: 'Ludhiana, Punjab',
-      distance: '2.5 km',
-      description: 'Well-maintained John Deere tractor in excellent condition. Perfect for plowing, tilling, and various agricultural operations. Equipped with modern features for efficient farming.',
-      specs: [
-        { label: 'Engine Power', value: '75 HP' },
-        { label: 'Wheel Base', value: '2500 mm' },
-        { label: 'Transmission', value: 'Manual' },
-        { label: 'Year', value: '2018' },
-      ],
-      features: [
-        'Power Steering',
-        'Cabin with AC',
-        'Good Traction Tires',
-        'Water Cooled Engine',
-        'Creeper Gearbox',
-      ],
-      owner: {
-        name: 'Rajesh Kumar',
-        rating: 4.9,
-        reviews: 245,
-        location: 'Ludhiana, Punjab',
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-      },
-      images: [
-        'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1524486361537-8ad15938e1a3?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1595246140625-573b715d11dc?auto=format&fit=crop&w=800&q=80'
-      ],
-      customerReviews: [
-        {
-          author: 'Harpreet Singh',
-          rating: 5,
-          text: 'Excellent tractor! Very well maintained and owner is very helpful.',
-          date: '2 weeks ago',
-        },
-        {
-          author: 'Priya Sharma',
-          rating: 4,
-          text: 'Good condition. Could have better fuel efficiency but overall satisfied.',
-          date: '1 month ago',
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Combine Harvester',
-      category: 'Harvesters',
-      price: '₹1,200/day',
-      rating: 4.6,
-      reviewCount: 89,
-      location: 'Amritsar, Punjab',
-      distance: '5.2 km',
-      description: 'High-performance Combine Harvester, ideal for harvesting wheat, paddy, and other crops efficiently. Minimizes grain loss and speeds up your harvesting operations.',
-      specs: [
-        { label: 'Cutter Bar Width', value: '14 Feet' },
-        { label: 'Grain Tank Capacity', value: '3000 Litres' },
-        { label: 'Engine Power', value: '110 HP' },
-        { label: 'Year', value: '2020' },
-      ],
-      features: [
-        'Adjustable Cutter Bar',
-        'Comfort Operator Cabin',
-        'GPS Guidance Ready',
-        'High Grain Cleanliness',
-        'Low Grain Loss Technology',
-      ],
-      owner: {
-        name: 'Gurpreet Singh',
-        rating: 4.8,
-        reviews: 132,
-        location: 'Amritsar, Punjab',
-        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-      },
-      images: [
-        'https://images.unsplash.com/photo-1554769945-af468c934022?auto=format&fit=crop&w=800&q=80',
-        'https://upload.wikimedia.org/wikipedia/commons/3/3b/Combine_Harvester_in_Field_-_geograph.org.uk_-_385537.jpg',
-        'https://images.pexels.com/photos/1595108/pexels-photo-1595108.jpeg?auto=compress&cs=tinysrgb&w=800'
-      ],
-      customerReviews: [
-        {
-          author: 'Jaspal Singh',
-          rating: 5,
-          text: 'The harvester worked flawlessly. Saved us a lot of time this season.',
-          date: '3 weeks ago',
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: 'Rotavator',
-      category: 'Soil Preparation',
-      price: '₹300/day',
-      rating: 4.9,
-      reviewCount: 234,
-      location: 'Patiala, Punjab',
-      distance: '1.8 km',
-      description: 'Heavy-duty Rotavator (rotary tiller) for perfect seedbed preparation. It breaks up soil clods efficiently, mixes crop residues, and enhances soil aeration.',
-      specs: [
-        { label: 'Working Width', value: '6 Feet' },
-        { label: 'Number of Blades', value: '42 L-Type' },
-        { label: 'Gearbox', value: 'Multi-Speed' },
-        { label: 'Year', value: '2021' },
-      ],
-      features: [
-        'Heavy-Duty Frame',
-        'Multi-Speed Gearbox',
-        'L-Type Long Life Blades',
-        'Trailing Board Adjustment',
-        'Sturdy Side Drive',
-      ],
-      owner: {
-        name: 'Amit Sharma',
-        rating: 4.9,
-        reviews: 412,
-        location: 'Patiala, Punjab',
-        image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',
-      },
-      images: [
-        'https://images.pexels.com/photos/2165688/pexels-photo-2165688.jpeg?auto=compress&cs=tinysrgb&w=800',
-        'https://upload.wikimedia.org/wikipedia/commons/0/05/A_tractor_and_rotavator_tractor_mounted_tiller_at_Dalby_-_geograph.org.uk_-_554755.jpg',
-        'https://upload.wikimedia.org/wikipedia/commons/3/33/Kuhn_EL201_-_rotavator_at_Bernard_Saunders_WD_2008_-_IMG_4072.jpg'
-      ],
-      customerReviews: [
-        {
-          author: 'Raman Preet',
-          rating: 5,
-          text: 'Perfect blades, soil prepared in a single pass. Will rent again!',
-          date: '1 week ago',
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: 'Sprayer Equipment',
-      category: 'Sprayers',
-      price: '₹200/day',
-      rating: 4.7,
-      reviewCount: 145,
-      location: 'Ludhiana, Punjab',
-      distance: '3.1 km',
-      description: 'Tractor-mounted boom sprayer for uniform distribution of crop protection products and fertilizers. High tank capacity ensures long operation cycles.',
-      specs: [
-        { label: 'Tank Capacity', value: '600 Litres' },
-        { label: 'Boom Length', value: '12 Metres' },
-        { label: 'Pump Type', value: 'Diaphragm' },
-        { label: 'Year', value: '2019' },
-      ],
-      features: [
-        'Height Adjustable Boom',
-        'Triple Action Nozzles',
-        'Chemical Induction Tank',
-        'Anti-Drip System',
-        'Clean Water Tank',
-      ],
-      owner: {
-        name: 'Baldev Singh',
-        rating: 4.6,
-        reviews: 98,
-        location: 'Ludhiana, Punjab',
-        image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=150&q=80',
-      },
-      images: [
-        'https://upload.wikimedia.org/wikipedia/commons/e/ee/Case_IH_tractor_with_Hardi_field_sprayer%2C_Lolland.jpg',
-        'https://upload.wikimedia.org/wikipedia/commons/f/f4/Tractor_and_Sprayer_-_geograph.org.uk_-_1913814.jpg',
-        'https://upload.wikimedia.org/wikipedia/commons/c/c2/Tractor_and_sprayer_working_near_Congham_-_geograph.org.uk_-_3419172.jpg'
-      ],
-      customerReviews: [
-        {
-          author: 'Sukhdev Singh',
-          rating: 4,
-          text: 'Satisfactory performance. The boom height is easy to adjust.',
-          date: '2 months ago',
-        },
-      ],
-    },
-    {
-      id: 5,
-      name: 'Thresher Machine',
-      category: 'Threshers',
-      price: '₹400/day',
-      rating: 4.5,
-      reviewCount: 78,
-      location: 'Bathinda, Punjab',
-      distance: '8.5 km',
-      description: 'Multi-crop thresher designed for separating grain from wheat, mustard, millet, and other crops. Ensures clean grain separation with minimal breakage.',
-      specs: [
-        { label: 'Capacity', value: '1.5 to 2 Tons/Hr' },
-        { label: 'Required Power', value: '35 HP Tractor' },
-        { label: 'Blower System', value: 'Double Blower' },
-        { label: 'Year', value: '2020' },
-      ],
-      features: [
-        'Multi-Crop Compatibility',
-        'Adjustable Concave Clearance',
-        'High Capacity Blowers',
-        'Robust Steel Body',
-        'Low Maintenance Design',
-      ],
-      owner: {
-        name: 'Vijay Kumar',
-        rating: 4.7,
-        reviews: 124,
-        location: 'Bathinda, Punjab',
-        image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-      },
-      images: [
-        'https://upload.wikimedia.org/wikipedia/commons/a/a7/Threshing_Machine_In_Action.jpg',
-        'https://upload.wikimedia.org/wikipedia/commons/8/86/A_rice_threshing_machine_01.jpg',
-        'https://upload.wikimedia.org/wikipedia/commons/b/be/Case_threshing_machine_VA2.jpg'
-      ],
-      customerReviews: [
-        {
-          author: 'Gurmukh Singh',
-          rating: 5,
-          text: 'Very clean grain separation. Hardly any grain breakage.',
-          date: '1 month ago',
-        },
-      ],
-    },
-    {
-      id: 6,
-      name: 'Seeder Machine',
-      category: 'Seeders',
-      price: '₹350/day',
-      rating: 4.8,
-      reviewCount: 112,
-      location: 'Sangrur, Punjab',
-      distance: '6.2 km',
-      description: 'Modern seed drill / seeder machine for precise planting. Ensures optimal seed depth and row spacing for maximum crop yield and seed conservation.',
-      specs: [
-        { label: 'Row Count', value: '9 Row' },
-        { label: 'Seed Tank Capacity', value: '150 Kg' },
-        { label: 'Fertilizer Tank', value: '150 Kg' },
-        { label: 'Year', value: '2021' },
-      ],
-      features: [
-        'Dual Box (Seed & Fertilizer)',
-        'Adjustable Row Spacing',
-        'Depth Control Wheels',
-        'Fluted Roller Seed Feed',
-        'Heavy duty frame',
-      ],
-      owner: {
-        name: 'Jaspreet Singh',
-        rating: 4.9,
-        reviews: 180,
-        location: 'Sangrur, Punjab',
-        image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80',
-      },
-      images: [
-        'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80',
-        'https://upload.wikimedia.org/wikipedia/commons/6/65/John_Deere_tractor_with_seed_drill.jpg',
-        'https://upload.wikimedia.org/wikipedia/commons/b/b2/Tractor_planet_-_John_Deere_tractor_with_seed_drill_and_gulls.jpg'
-      ],
-      customerReviews: [
-        {
-          author: 'Karan Johal',
-          rating: 5,
-          text: 'Sowing depth was perfect, wheat germinated beautifully.',
-          date: '2 weeks ago',
-        },
-      ],
-    },
-  ]
+  useEffect(() => {
+    async function fetchDetail() {
+      setLoading(true)
+      try {
+        const data = await equipmentService.getEquipmentById(id)
+        setEquipment(data)
 
-  // Find matching equipment by ID or fall back to ID 1
-  const equipment = equipmentList.find((item) => item.id === parseInt(id)) || equipmentList[0]
+        // Check favorites state
+        const saved = JSON.parse(localStorage.getItem('agripool_favorites') || '[]')
+        const isFav = saved.some(f => f.id === data.id && f.type === 'Equipment')
+        setIsFavorite(isFav)
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to load equipment details.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDetail()
+  }, [id])
+
+  const handleToggleFavorite = () => {
+    if (!equipment) return
+    setIsFavorite(prev => {
+      const nextFav = !prev
+      const stored = JSON.parse(localStorage.getItem('agripool_favorites') || '[]')
+      let nextStored
+      if (prev) {
+        nextStored = stored.filter(f => !(f.id === equipment.id && f.type === 'Equipment'))
+      } else {
+        nextStored = [...stored, {
+          id: equipment.id,
+          title: equipment.name,
+          type: 'Equipment',
+          price: equipment.price,
+        }]
+      }
+      localStorage.setItem('agripool_favorites', JSON.stringify(nextStored))
+      toast.success(prev ? 'Removed from favorites' : 'Saved to favorites')
+      return nextFav
+    })
+  }
 
   // Extract numeric daily price from e.g. "₹500/day" or "₹1,200/day"
   const dailyPrice = useMemo(() => {
+    if (!equipment?.price) return 500
     const raw = equipment.price.replace(/[^0-9,]/g, '').replace(/,/g, '')
     return parseInt(raw) || 500
-  }, [equipment.price])
+  }, [equipment?.price])
 
   // Calculate number of days between start and end date
   const numDays = useMemo(() => {
@@ -388,6 +158,26 @@ export default function EquipmentDetail() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
+        <Spinner size="lg" />
+        <p className="text-neutral-500 animate-pulse text-sm">Loading details...</p>
+      </div>
+    )
+  }
+
+  if (!equipment) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
+        <p className="text-neutral-500 text-sm">Equipment details not found.</p>
+        <Link to="/equipment">
+          <Button variant="primary">Back to Marketplace</Button>
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className={`min-h-screen py-8 px-4 ${isDark ? 'bg-dark-bg' : 'bg-neutral-50'}`}>
       <motion.div
@@ -416,13 +206,13 @@ export default function EquipmentDetail() {
             <Card className="p-6 mb-6">
               <div className="h-96 w-full bg-gray-100 dark:bg-dark-border rounded-lg mb-4 overflow-hidden">
                 <img
-                  src={equipment.images[activeImageIdx] || equipment.images[0]}
+                  src={(equipment.images || [equipment.image])[activeImageIdx] || equipment.image}
                   alt={equipment.name}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex gap-2">
-                {equipment.images.map((img, idx) => (
+                {(equipment.images || [equipment.image]).map((img, idx) => (
                   <div
                     key={idx}
                     onClick={() => setActiveImageIdx(idx)}
@@ -463,7 +253,7 @@ export default function EquipmentDetail() {
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={handleToggleFavorite}
                     className={`p-3 rounded-lg transition-colors ${
                       isFavorite
                         ? 'bg-red-500 text-white'

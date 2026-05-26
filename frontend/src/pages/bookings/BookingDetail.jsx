@@ -99,7 +99,14 @@ export default function BookingDetail() {
             <h1 className="text-2xl font-bold">{booking.title}</h1>
             <p className="text-neutral-500 dark:text-neutral-400 mt-1">Booking #{booking.id}</p>
           </div>
-          <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+          <div className="flex gap-2">
+            <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+            {booking.is_paid ? (
+              <Badge variant="success">Paid Online</Badge>
+            ) : (
+              <Badge variant="warning">Unpaid</Badge>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -163,7 +170,7 @@ export default function BookingDetail() {
               Mark completed
             </Button>
           )}
-          {!isDriver && booking.status !== BOOKING_STATUS.COMPLETED && (
+          {!isDriver && booking.status !== BOOKING_STATUS.COMPLETED && !booking.is_paid && (
             <Link to={`/payments/checkout?booking=${id}&amount=${booking.amount}&desc=${encodeURIComponent(booking.title)}`}>
               <Button variant="secondary">Pay now</Button>
             </Link>

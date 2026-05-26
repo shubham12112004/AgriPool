@@ -9,19 +9,22 @@ import PageHeader from '../../components/shared/PageHeader'
 import { Button, Card, Badge } from '../../components/ui'
 import { dashboardService } from '../../services'
 
-const EQUIPMENT = [
-  { id: 1, name: 'Mahindra Tractor 575', rate: '₹800/day', status: 'Available' },
-  { id: 2, name: 'Combine Harvester', rate: '₹2,500/day', status: 'Rented' },
-]
+import { equipmentService } from '../../services'
 
 export default function EquipmentOwnerDashboard() {
   const { t } = useLanguage()
   const [stats, setStats] = useState([])
+  const [equipment, setEquipment] = useState([])
 
   useEffect(() => {
     dashboardService
       .getStats()
       .then((res) => setStats(res.stats || []))
+      .catch(() => {})
+
+    equipmentService
+      .getEquipment({ owner: true })
+      .then((res) => setEquipment(Array.isArray(res) ? res : (res?.data || [])))
       .catch(() => {})
   }, [])
 
@@ -29,7 +32,7 @@ export default function EquipmentOwnerDashboard() {
     ? stats
     : [
         { label: 'Monthly earnings', value: '₹0', trend: '—' },
-        { label: 'Listed items', value: '5', trend: '—' },
+        { label: 'Listed items', value: '0', trend: '—' },
         { label: 'Pending rentals', value: '0', trend: '—' },
       ]
 
@@ -64,22 +67,26 @@ export default function EquipmentOwnerDashboard() {
 
       <Card className="p-5">
         <h3 className="font-semibold mb-4">{t('dashboard.owner.yourEquipment')}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {EQUIPMENT.map((eq) => (
-            <div
-              key={eq.id}
-              className="p-4 rounded-xl border border-neutral-200 dark:border-dark-border flex justify-between items-center"
-            >
-              <div>
-                <p className="font-medium">{eq.name}</p>
-                <p className="text-sm text-primary-600 dark:text-primary-400">{eq.rate}</p>
+        {equipment.length === 0 ? (
+          <p className="text-sm text-neutral-500 text-center py-6">You have no listed items. Click add equipment to get started.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {equipment.map((eq) => (
+              <div
+                key={eq.id}
+                className="p-4 rounded-xl border border-neutral-200 dark:border-dark-border flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-medium">{eq.name}</p>
+                  <p className="text-sm text-primary-600 dark:text-primary-400">{eq.price}</p>
+                </div>
+                <Badge variant={eq.availability === 'Available' ? 'success' : 'warning'}>
+                  {eq.availability === 'Available' ? t('dashboard.owner.statusAvailable') : t('dashboard.owner.statusRented')}
+                </Badge>
               </div>
-              <Badge variant={eq.status === 'Available' ? 'success' : 'warning'}>
-                {eq.status === 'Available' ? t('dashboard.owner.statusAvailable') : t('dashboard.owner.statusRented')}
-              </Badge>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </Card>
     </motion.div>
   )

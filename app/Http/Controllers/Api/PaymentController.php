@@ -170,11 +170,23 @@ class PaymentController extends Controller
 
     public function history(Request $request): JsonResponse
     {
-        $payments = Payment::where('user_id', $request->user()->id)
+        $user = $request->user();
+
+        if (in_array($user->role, ['driver', 'equipment_owner', 'equipment-owner'])) {
+            $payments = Payment::whereHas('delivery', function ($query) use ($user) {
+                $query->where('driver_id', $user->id);
+            })
             ->latest()
             ->limit(50)
             ->get()
             ->map(fn (Payment $p) => $this->paymentPayload($p));
+        } else {
+            $payments = Payment::where('user_id', $user->id)
+                ->latest()
+                ->limit(50)
+                ->get()
+                ->map(fn (Payment $p) => $this->paymentPayload($p));
+        }
 
         return response()->json(['data' => $payments]);
     }

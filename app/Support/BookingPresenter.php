@@ -32,6 +32,7 @@ class BookingPresenter
             'driver_id' => $delivery->driver_id,
             'farmer_name' => $delivery->farmer?->name,
             'driver_name' => $delivery->driver?->name,
+            'is_paid' => \App\Models\Payment::where('delivery_id', $delivery->id)->where('status', 'success')->exists(),
             'markers' => self::markers($delivery),
         ];
     }

@@ -45,6 +45,7 @@ Route::middleware(['spa.auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
     Route::apiResource('equipment', EquipmentController::class);
+    Route::apiResource('products', \App\Http\Controllers\Api\ProductController::class);
     Route::get('/bookings/map-markers', [BookingController::class, 'mapMarkers']);
     Route::get('/bookings/{id}/conversation', [ConversationController::class, 'show']);
     Route::post('/bookings/{id}/accept', [BookingController::class, 'accept']);

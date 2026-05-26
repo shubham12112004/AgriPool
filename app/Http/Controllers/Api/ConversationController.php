@@ -101,7 +101,9 @@ class ConversationController extends Controller
 
         return $delivery->farmer_id === $user->id
             || $delivery->driver_id === $user->id
-            || ($role === 'driver' && $delivery->status === 'pending' && ! $delivery->driver_id);
+            || ($role === 'driver' && $delivery->status === 'pending' && ! $delivery->driver_id && $delivery->type === 'transport')
+            || (in_array($role, ['equipment_owner', 'equipment-owner']) && $delivery->status === 'pending' && ! $delivery->driver_id && $delivery->type === 'equipment')
+            || ($role === 'admin');
     }
 
     private function syncParticipants(Conversation $conversation, Delivery $delivery): void

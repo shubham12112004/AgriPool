@@ -6,22 +6,44 @@ import { Button, Card, Input, Textarea } from '../../components/ui'
 import { useAuthStore } from '../../store/authStore'
 import { ROLES } from '../../config/roles'
 import { getDashboardPathForRole } from '../../store/authStore'
+import { authProfileService, equipmentService } from '../../services'
 
 export default function EquipmentOwnerOnboarding() {
   const navigate = useNavigate()
   const setRole = useAuthStore((s) => s.setRole)
   const [form, setForm] = useState({ equipmentName: '', category: '', dailyRate: '', description: '' })
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setRole(ROLES.EQUIPMENT_OWNER)
-    toast.success('Equipment profile saved')
-    navigate(getDashboardPathForRole(ROLES.EQUIPMENT_OWNER))
+    setLoading(true)
+    try {
+      // 1. Update user role to equipment_owner
+      await authProfileService.updateRole(ROLES.EQUIPMENT_OWNER)
+      
+      // 2. Create the first equipment listing
+      await equipmentService.createEquipment({
+        name: form.equipmentName,
+        category: form.category,
+        daily_rate: Number(form.dailyRate),
+        description: form.description,
+        location: 'Ludhiana, Punjab', // default fallback, or can be queried
+      })
+
+      setRole(ROLES.EQUIPMENT_OWNER)
+      toast.success('Equipment profile saved and role updated!')
+      navigate(getDashboardPathForRole(ROLES.EQUIPMENT_OWNER))
+    } catch (error) {
+      console.error(error)
+      toast.error(error.response?.data?.message || 'Failed to complete onboarding. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -37,8 +59,8 @@ export default function EquipmentOwnerOnboarding() {
           <div className="rounded-xl border border-dashed p-4 text-center text-sm text-neutral-500">
             Upload equipment photos
           </div>
-          <Button type="submit" variant="primary" fullWidth size="lg">
-            Finish onboarding
+          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
+            {loading ? 'Saving details...' : 'Finish onboarding'}
           </Button>
         </form>
       </Card>

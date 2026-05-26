@@ -21,15 +21,22 @@ class BookingController extends Controller
 
         if ($role === 'driver') {
             if ($tab === 'requests') {
-                $query->where('status', 'pending')->whereNull('driver_id');
+                $query->where('status', 'pending')
+                    ->whereNull('driver_id')
+                    ->where('type', 'transport');
             } else {
-                $query->where(function ($q) use ($user) {
-                    $q->where('driver_id', $user->id)
-                        ->orWhere(function ($q2) {
-                            $q2->where('status', 'pending')->whereNull('driver_id');
-                        });
-                });
+                $query->where('driver_id', $user->id);
             }
+        } elseif ($role === 'equipment_owner' || $role === 'equipment-owner') {
+            if ($tab === 'requests') {
+                $query->where('status', 'pending')
+                    ->whereNull('driver_id')
+                    ->where('type', 'equipment');
+            } else {
+                $query->where('driver_id', $user->id);
+            }
+        } elseif ($role === 'admin') {
+            // Admins see all bookings
         } else {
             $query->where('farmer_id', $user->id);
         }
@@ -142,12 +149,12 @@ class BookingController extends Controller
     public function accept(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        abort_if(($user->role ?? '') !== 'driver', 403);
+        abort_if(!in_array($user->role, ['driver', 'equipment_owner', 'equipment-owner']), 403);
 
         $delivery = Delivery::findOrFail($id);
 
         if ($delivery->driver_id && $delivery->driver_id !== $user->id) {
-            return response()->json(['message' => 'Already claimed by another driver.'], 409);
+            return response()->json(['message' => 'Already claimed by another partner.'], 409);
         }
 
         $delivery->driver_id = $user->id;
@@ -162,13 +169,13 @@ class BookingController extends Controller
         $delivery = Delivery::findOrFail($id);
         $user = $request->user();
 
-        if ($user->role === 'driver') {
+        if (in_array($user->role, ['driver', 'equipment_owner', 'equipment-owner'])) {
             if ($delivery->driver_id === $user->id) {
                 $delivery->driver_id = null;
                 $delivery->status = 'pending';
                 $delivery->save();
             } elseif ($delivery->status === 'pending' && is_null($delivery->driver_id)) {
-                // Unclaimed pending booking, allow driver to decline/reject (handled via local filtering).
+                // decline logic
             } else {
                 abort(403);
             }
@@ -241,7 +248,7 @@ class BookingController extends Controller
             default => $validated['status'],
         };
 
-        if ($user->role === 'driver' && $delivery->driver_id !== $user->id) {
+        if (in_array($user->role, ['driver', 'equipment_owner', 'equipment-owner']) && $delivery->driver_id !== $user->id) {
             abort(403);
         }
 
@@ -335,7 +342,9 @@ class BookingController extends Controller
 
         $allowed = $delivery->farmer_id === $user->id
             || $delivery->driver_id === $user->id
-            || ($role === 'driver' && $delivery->status === 'pending' && ! $delivery->driver_id);
+            || ($role === 'driver' && $delivery->status === 'pending' && !$delivery->driver_id && $delivery->type === 'transport')
+            || (in_array($role, ['equipment_owner', 'equipment-owner']) && $delivery->status === 'pending' && !$delivery->driver_id && $delivery->type === 'equipment')
+            || ($role === 'admin');
 
         abort_if(! $allowed, 403);
 

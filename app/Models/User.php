@@ -69,6 +69,16 @@ class User extends Authenticatable
         return $this->hasOne(Vehicle::class);
     }
 
+    public function vehicles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Vehicle::class);
+    }
+
+    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);

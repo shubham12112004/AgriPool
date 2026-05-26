@@ -623,6 +623,42 @@ export default function Profile() {
               })}
             </div>
           </Card>
+
+          {/* RECENT BOOKINGS HISTORY */}
+          <Card className="p-6 border border-neutral-200 dark:border-dark-border bg-white/50 dark:bg-dark-card/50 backdrop-blur-xl">
+            <h3 className="text-sm font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-4">
+              Recent Bookings History
+            </h3>
+            {bookingsLoading ? (
+              <p className="text-sm text-neutral-400">Loading bookings...</p>
+            ) : bookings.length === 0 ? (
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">No booking history available.</p>
+            ) : (
+              <div className="space-y-3">
+                {bookings.slice(0, 5).map((b) => (
+                  <div key={b.id} className="flex items-center justify-between p-3 rounded-xl border border-neutral-100 dark:border-dark-border/40 hover:bg-neutral-50 dark:hover:bg-dark-border/10 transition-colors">
+                    <div>
+                      <p className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">{b.title}</p>
+                      <p className="text-xs text-neutral-400">{b.date} · {b.location || b.pickup_location}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {b.is_paid && (
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-extrabold uppercase">
+                          Paid
+                        </span>
+                      )}
+                      <span className="px-2.5 py-0.5 rounded text-xs capitalize bg-neutral-100 dark:bg-dark-border text-neutral-600 dark:text-neutral-300 font-semibold">
+                        {b.status?.replace('_', ' ')}
+                      </span>
+                      <Link to={`/bookings/${b.id}`} className="text-primary-500 hover:text-primary-600">
+                        <ChevronRight size={16} />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
       </div>
     </motion.div>

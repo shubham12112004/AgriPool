@@ -11,6 +11,7 @@ class Vehicle extends Model
     protected $fillable = [
         'user_id', 'vehicle_type', 'registration', 'capacity', 'available',
         'is_active', 'maintenance_status', 'supported_crops', 'capacity_kg', 'verified_at',
+        'rental_price', 'location', 'image_url', 'description',
     ];
 
     protected function casts(): array
@@ -21,6 +22,7 @@ class Vehicle extends Model
             'supported_crops' => 'array',
             'verified_at' => 'datetime',
             'capacity_kg' => 'integer',
+            'rental_price' => 'integer',
         ];
     }
 
