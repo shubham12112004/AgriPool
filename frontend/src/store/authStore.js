@@ -9,11 +9,11 @@ export const useAuthStore = create(
       token: null,
       role: null,
       setAuth: ({ user, token, role }) =>
-        set({
-          user,
-          token: token ?? null,
-          role: role ?? user?.role ?? null,
-        }),
+        set((state) => ({
+          user: user !== undefined ? user : state.user,
+          token: token !== undefined ? token : state.token,
+          role: role !== undefined ? role : (user?.role ?? state.role),
+        })),
       setRole: (role) => set({ role }),
       logout: () => {
         sessionStorage.removeItem('auth_token')

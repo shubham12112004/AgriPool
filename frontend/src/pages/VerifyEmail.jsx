@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Mail, ShieldCheck, Send, ArrowRight } from 'lucide-react'
 import { Card, Button, Spinner } from '../components/ui'
 import { useAuthStore } from '../store/authStore'
@@ -13,6 +13,8 @@ export default function VerifyEmail() {
   const [sent, setSent] = useState(false)
   const { user, setAuth } = useAuthStore()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromRegister = location.state?.fromRegister || false
 
   useEffect(() => {
     if (user?.email_verified) {
@@ -82,6 +84,19 @@ export default function VerifyEmail() {
     }
   }
 
+  const handleSkip = () => {
+    toast.success('Verification skipped. You can verify your email later in Settings.')
+    if (fromRegister) {
+      navigate('/role-selection')
+    } else {
+      if (window.history.length > 1) {
+        navigate(-1)
+      } else {
+        navigate('/dashboard')
+      }
+    }
+  }
+
   return (
     <div className="max-w-md mx-auto py-12 px-4">
       <Card className="p-8 text-center shadow-xl border-neutral-200/60 dark:border-white/5 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl">
@@ -95,15 +110,26 @@ export default function VerifyEmail() {
         </p>
 
         {!sent ? (
-          <Button 
-            variant="primary" 
-            fullWidth 
-            className="mb-4 gap-2 bg-linear-to-r from-agri-green to-agri-cyan text-white h-11"
-            onClick={handleSendOtp}
-            loading={sending}
-          >
-            <Send size={16} /> Send Verification Code
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              variant="primary" 
+              fullWidth 
+              className="gap-2 bg-linear-to-r from-agri-green to-agri-cyan text-white h-11"
+              onClick={handleSendOtp}
+              loading={sending}
+            >
+              <Send size={16} /> Send Verification Code
+            </Button>
+            
+            <Button
+              variant="outline"
+              fullWidth
+              className="h-11 border-neutral-300 dark:border-dark-border text-neutral-700 dark:text-neutral-300"
+              onClick={handleSkip}
+            >
+              Skip Verification
+            </Button>
+          </div>
         ) : (
           <form onSubmit={handleVerify} className="space-y-6">
             <div className="flex gap-2 justify-center">
@@ -131,12 +157,22 @@ export default function VerifyEmail() {
               >
                 Confirm & Verify
               </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                fullWidth
+                className="h-11 border-neutral-300 dark:border-dark-border text-neutral-700 dark:text-neutral-300"
+                onClick={handleSkip}
+              >
+                Skip Verification
+              </Button>
               
               <button 
                 type="button" 
                 onClick={handleSendOtp} 
                 disabled={sending} 
-                className="text-xs font-semibold text-primary-600 hover:underline block mx-auto"
+                className="text-xs font-semibold text-primary-600 hover:underline block mx-auto pt-2"
               >
                 Resend verification email
               </button>

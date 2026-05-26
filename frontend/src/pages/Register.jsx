@@ -96,8 +96,8 @@ export default function Register() {
       const user = res?.user
       if (token) sessionStorage.setItem('auth_token', token)
       setAuth({ user, token, role: user?.role })
-      toast.success('Account created! Choose your role.')
-      navigate('/role-selection')
+      toast.success("Account created! Let's verify your email.")
+      navigate('/verify-email', { state: { fromRegister: true } })
     } catch (err) {
       const msg =
         err?.errors?.turnstile?.[0] ||

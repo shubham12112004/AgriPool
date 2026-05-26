@@ -725,7 +725,11 @@ export default function Messages() {
               ) : (
                 <>
                   {messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} isMine={message.user_id === user?.id} />
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      isMine={message.user_id != null && user?.id != null && String(message.user_id) === String(user?.id)}
+                    />
                   ))}
                   <div ref={chatScrollRef} />
                 </>
