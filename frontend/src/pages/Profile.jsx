@@ -341,13 +341,16 @@ export default function Profile() {
             {/* User credentials */}
             {!isEditing ? (
               <>
-                <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+                <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 flex items-center justify-center gap-1.5">
                   {user?.name || t('profile.defaultMember')}
+                  {user?.email_verified && (
+                    <CheckCircle2 size={18} className="text-emerald-500 fill-emerald-500/10" title="Verified Profile" />
+                  )}
                 </h2>
                 <p className="text-sm text-neutral-400 dark:text-neutral-500 font-mono mb-2">
                   @{editForm.username}
                 </p>
-                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 mb-4">
                   {user?.role ? t('roles.' + user.role) : t('roles.farmer')}
                 </div>
                 <p className="text-sm px-2 text-neutral-600 dark:text-neutral-300 mb-6 italic leading-relaxed">

@@ -68,6 +68,8 @@ Route::middleware(['spa.auth'])->group(function () {
     Route::patch('/user/role', [AuthController::class, 'updateRole']);
     Route::put('/users/{id}', [AuthController::class, 'updateProfile']);
     Route::post('/users/{id}/avatar', [AuthController::class, 'uploadAvatar']);
+    Route::post('/auth/send-verification-otp', [AuthController::class, 'sendVerificationOtp']);
+    Route::post('/auth/verify-email-otp', [AuthController::class, 'verifyEmailOtp']);
 
     // Analytics routes (admin only)
     Route::get('/analytics/revenue-chart', [AnalyticsController::class, 'revenueChart']);

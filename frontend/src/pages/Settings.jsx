@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Moon, Sun, Globe, Bell, Lock, User, Palette, LogOut } from 'lucide-react'
+import { Moon, Sun, Globe, Bell, Lock, User, Palette, LogOut, ShieldCheck, ShieldAlert } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { useLanguage } from '../hooks/useLanguage'
 import { useAuthStore } from '../store/authStore'
@@ -8,6 +8,7 @@ import PageHeader from '../components/shared/PageHeader'
 import { Card, Button, Badge } from '../components/ui'
 import { authService } from '../services'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,9 +26,55 @@ const itemVariants = {
 export default function Settings() {
   const { isDark, toggleTheme } = useTheme()
   const { language, changeLanguage, t } = useLanguage()
-  const { user, logout } = useAuthStore()
+  const { user, setAuth, logout } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('general')
+
+  // Verification state variables
+  const [verifying, setVerifying] = useState(false)
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+
+  const handleSendOtp = async () => {
+    setOtpLoading(true)
+    try {
+      await authService.sendVerificationOtp()
+      setOtpSent(true)
+      toast.success('Verification OTP sent to your email!')
+    } catch (err) {
+      console.error(err)
+      toast.error(err.response?.data?.message || 'Failed to send verification OTP.')
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const handleVerifyOtp = async (e) => {
+    if (e) e.preventDefault()
+    if (!otpCode || otpCode.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP code.')
+      return
+    }
+    setOtpLoading(true)
+    try {
+      const res = await authService.verifyEmailOtp(otpCode)
+      if (res?.success && res?.user) {
+        setAuth({ user: res.user, role: res.user.role })
+        toast.success('Email address verified successfully!')
+        setVerifying(false)
+        setOtpSent(false)
+        setOtpCode('')
+      } else {
+        toast.error('Verification failed. Invalid OTP.')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error(err.response?.data?.message || 'Verification failed. Incorrect OTP.')
+    } finally {
+      setOtpLoading(false)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -110,18 +157,85 @@ export default function Settings() {
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                     Email Address
                   </label>
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className={cn(
-                      'w-full px-4 py-2.5 rounded-lg border transition-colors',
-                      isDark
-                        ? 'bg-dark-border border-dark-border text-neutral-400'
-                        : 'bg-neutral-100 border-neutral-200 text-neutral-600'
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className={cn(
+                        'flex-1 px-4 py-2.5 rounded-lg border transition-colors',
+                        isDark
+                          ? 'bg-dark-border border-dark-border text-neutral-400'
+                          : 'bg-neutral-100 border-neutral-200 text-neutral-600'
+                      )}
+                    />
+                    {user?.email_verified ? (
+                      <Badge variant="success" className="h-fit py-2.5 px-3 flex items-center gap-1">
+                        <ShieldCheck size={14} /> Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="warning" className="h-fit py-2.5 px-3 flex items-center gap-1">
+                        <ShieldAlert size={14} /> Unverified
+                      </Badge>
                     )}
-                  />
+                  </div>
                 </div>
+
+                {!user?.email_verified && (
+                  <div className="p-4 rounded-xl border border-dashed border-neutral-200 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-card/30">
+                    {!verifying ? (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-bold">Verify Your Email Address</p>
+                          <p className="text-xs text-neutral-500 mt-0.5">Please verify your email to unlock all marketplace and checkout actions.</p>
+                        </div>
+                        <Button variant="primary" size="sm" onClick={() => { setVerifying(true); handleSendOtp(); }}>
+                          Verify Now
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-bold">Email OTP Verification</p>
+                          <p className="text-xs text-neutral-500 mt-0.5">We have sent a 6-digit OTP code to your registered email: <strong>{user?.email}</strong></p>
+                        </div>
+
+                        {otpSent && (
+                          <div className="space-y-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <input
+                                type="text"
+                                maxLength={6}
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                                placeholder="Enter 6-digit OTP"
+                                className={cn(
+                                  'flex-1 px-4 py-2 rounded-lg border transition-colors text-center tracking-widest font-mono text-lg font-bold',
+                                  isDark
+                                    ? 'bg-[#080c14] border-dark-border text-neutral-200 focus:border-primary-500'
+                                    : 'bg-white border-neutral-300 text-neutral-800 focus:border-primary-500'
+                                )}
+                                required
+                              />
+                              <Button type="button" variant="primary" size="md" loading={otpLoading} onClick={handleVerifyOtp}>
+                                Confirm Code
+                              </Button>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <button type="button" onClick={handleSendOtp} disabled={otpLoading} className="text-primary-600 hover:underline">
+                                Resend OTP Code
+                              </button>
+                              <button type="button" onClick={() => { setVerifying(false); setOtpSent(false); setOtpCode(''); }} className="text-rose-600 hover:underline">
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                     Role

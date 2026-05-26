@@ -280,6 +280,100 @@ class AuthController extends Controller
         return response()->json(['user' => $this->userPayload($user)]);
     }
 
+    public function sendVerificationOtp(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if ($user->email_verified_at) {
+            return response()->json([
+                'message' => 'Your email address is already verified.'
+            ], 400);
+        }
+
+        // Generate 6-digit OTP
+        $otp = sprintf("%06d", mt_rand(1, 999999));
+
+        $user->email_verification_otp = $otp;
+        $user->email_verification_otp_expires_at = now()->addMinutes(15);
+        $user->save();
+
+        // Send OTP mail via Laravel Mail
+        try {
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $otp) {
+                $message->to($user->email)
+                    ->subject('AgriPool - Email Verification OTP')
+                    ->html("
+                        <div style='font-family: Arial, sans-serif; padding: 25px; color: #333; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;'>
+                            <div style='text-align: center; margin-bottom: 20px;'>
+                                <h1 style='color: #10b981; margin: 0; font-size: 28px;'>AgriPool</h1>
+                                <p style='color: #64748b; margin: 5px 0 0 0;'>Your Agricultural Operations Hub</p>
+                            </div>
+                            <hr style='border: 0; border-top: 1px solid #f1f5f9; margin-bottom: 20px;'>
+                            <h2 style='font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #0f172a;'>Hello {$user->name},</h2>
+                            <p style='line-height: 1.6; color: #334155;'>We received a request to verify the email address associated with your AgriPool account. Use the following One-Time Password (OTP) to complete the verification:</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <div style='font-size: 32px; font-weight: 800; letter-spacing: 5px; color: #059669; background-color: #ecfdf5; padding: 15px 30px; border-radius: 10px; display: inline-block; border: 1px dashed #a7f3d0;'>
+                                    {$otp}
+                                </div>
+                            </div>
+                            <p style='line-height: 1.6; color: #475569;'>This OTP is valid for <strong>15 minutes</strong>. If you did not make this request, you can safely ignore this email.</p>
+                            <hr style='border: 0; border-top: 1px solid #f1f5f9; margin-top: 30px; margin-bottom: 20px;'>
+                            <p style='font-size: 11px; color: #94a3b8; text-align: center;'>This is an automated security email. Please do not reply to this message.</p>
+                        </div>
+                    ");
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send verification email to {$user->email}: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Unable to send OTP verification email. Please check your SMTP settings.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Verification OTP sent successfully to ' . $user->email,
+            'dev_otp' => $otp
+        ]);
+    }
+
+    public function verifyEmailOtp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'otp' => ['required', 'string', 'size:6'],
+        ]);
+
+        $user = $request->user();
+        if ($user->email_verified_at) {
+            return response()->json([
+                'message' => 'Your email is already verified.',
+                'user' => $this->userPayload($user)
+            ]);
+        }
+
+        if (!$user->email_verification_otp || $user->email_verification_otp !== $request->otp) {
+            return response()->json([
+                'message' => 'The entered OTP code is incorrect.'
+            ], 400);
+        }
+
+        if (now()->isAfter($user->email_verification_otp_expires_at)) {
+            return response()->json([
+                'message' => 'The entered OTP code has expired. Please request a new code.'
+            ], 400);
+        }
+
+        // Mark as verified
+        $user->email_verified_at = now();
+        $user->email_verification_otp = null;
+        $user->email_verification_otp_expires_at = null;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your email has been successfully verified!',
+            'user' => $this->userPayload($user)
+        ]);
+    }
+
     private function userPayload(User $user): array
     {
         return [
@@ -289,6 +383,7 @@ class AuthController extends Controller
             'role' => $user->role ?? 'farmer',
             'phone' => $user->phone,
             'avatar' => $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . $user->avatar)) : null,
+            'email_verified' => !is_null($user->email_verified_at),
         ];
     }
 }

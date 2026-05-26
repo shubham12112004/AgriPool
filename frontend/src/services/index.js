@@ -29,6 +29,12 @@ export const authService = {
   
   verifyEmail: (token) => 
     apiClient.post('/auth/verify-email', { token }),
+
+  sendVerificationOtp: () =>
+    apiClient.post('/auth/send-verification-otp'),
+
+  verifyEmailOtp: (otp) =>
+    apiClient.post('/auth/verify-email-otp', { otp }),
   
   googleAuth: (token) => 
     apiClient.post('/auth/google', { token }),
